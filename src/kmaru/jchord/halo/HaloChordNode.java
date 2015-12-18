@@ -41,8 +41,8 @@ public class HaloChordNode extends ChordNode
 
 			if (trustedNodes == null)
 			{
-				Finger finger = node.getFingerTable().getFinger(i);
-				knuckle = ((HaloChordNode) finger.getNode()).chordLocate(knuckleKey);
+				ChordNode finger = node.getFingerNode(i);
+				knuckle = ((HaloChordNode) finger).chordLocate(knuckleKey);
 			}
 			else
 			{
@@ -63,6 +63,13 @@ public class HaloChordNode extends ChordNode
 		return resultList;
 	}
 
+	/**
+	 * Returns a node that it's ith finger is the specified key. The algorithm is based on knuckle search algorithm 
+	 * 
+	 * @param key
+	 * @param i
+	 * @return
+	 */
 	protected ChordNode knuckleSearch(ChordKey key, int i)
 	{
 		ChordKey knuckleKey = key.createEndKey(Hash.KEY_LENGTH - 1 - i);

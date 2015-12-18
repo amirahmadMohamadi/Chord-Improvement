@@ -57,7 +57,13 @@ public class ChordKey implements Comparable<ChordKey>
 		// carry = (value >> 8) & 0xff;
 		// }
 		// return new ChordKey(newKey);
-		BigInteger bigInt = new BigInteger(key);
+		byte[] nodeKey = new byte[key.length+1];
+		for (int i = 0; i < key.length; i++)
+		{
+			nodeKey[i+1] = key[i];
+		}
+
+		BigInteger bigInt = new BigInteger(nodeKey);
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("1");

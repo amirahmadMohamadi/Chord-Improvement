@@ -1,5 +1,6 @@
 package kmaru.jchord.reds;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
@@ -9,13 +10,15 @@ import kmaru.jchord.ChordKey;
 
 public class ReputationTree
 {
-	FingerNode			root;
-	public static int	MINIMUM_OBSERVATIONS = 3;
-	public static int	TREE_DEPTH	= 1;
+	FingerNode	root;
+	int			minimumObservations;
+	int			chunkSize;
 
-	ReputationTree(ChordKey rootKey)
+	ReputationTree(ChordKey rootKey, int chunkSize, int minimumObservations)
 	{
 		root = new FingerNode(rootKey);
+		this.minimumObservations = minimumObservations;
+		this.chunkSize = chunkSize;
 	}
 
 	public void addScore(ChordKey key, int successfulLookups)
@@ -67,10 +70,18 @@ public class ReputationTree
 
 		ChordKey startKey1 = node.createStartKey(i - 1);
 		list.add(startKey1);
-		if (startKey1.equals(key) == false && list.size() < TREE_DEPTH)
+		if (startKey1.equals(key) == false && isFingerSpaceGreaterThanChunkSize(node, i - 1))
 			estimatePath(startKey1, key, list);
 
 		return list;
+	}
+
+	private boolean isFingerSpaceGreaterThanChunkSize(ChordKey node, int i)
+	{
+		ChordKey startKey = node.createStartKey(i);
+		if (startKey.createStartKey(chunkSize).isBetween(startKey, node.createStartKey(i + 1)))
+			return true;
+		return false;
 	}
 
 	public FingerNode findNode(ChordKey key)
@@ -100,19 +111,46 @@ public class ReputationTree
 	{
 		FingerNode node = findNode(key);
 
-		if (node.equals(root))
-			return 0.5;
-
 		while (true)
 		{
-			if (node.getObservations() >= MINIMUM_OBSERVATIONS)
+			if (node.getObservations() >= minimumObservations)
 			{
 				return node.getScore();
 			}
-			if (node.parent.equals(root))
+			if (node.isRoot())
 				return node.getScore();
 			node = node.parent;
 		}
+	}
+
+	public void printTree(PrintStream stream)
+	{
+		printTree(stream, root, 0);
+	}
+
+	private void printTree(PrintStream stream, FingerNode node, int level)
+	{
+		for (int i = 0; i < level - 1; i++)
+		{
+			stream.print("   ");
+		}
+		if (level > 0)
+			stream.print("---");
+
+		stream.println(
+				node.key.toString() + "\t:" + node.successfulLookups + "/" + node.sentLookups + "=" + node.getScore());
+		for (int i = 0; i < level; i++)
+		{
+			stream.print("   ");
+		}
+		if (node.isLeaf())
+			return;
+		stream.println("|");
+		for (FingerNode childNode : node.children)
+		{
+			printTree(stream, childNode, level + 1);
+		}
+
 	}
 
 	class FingerNode implements Comparable<FingerNode>
@@ -129,6 +167,11 @@ public class ReputationTree
 			parent = null;
 			children = new ArrayList<>();
 			this.key = key;
+		}
+
+		public boolean isRoot()
+		{
+			return parent == null;
 		}
 
 		public boolean isLeaf()
@@ -152,20 +195,7 @@ public class ReputationTree
 
 		public double getScore()
 		{
-			// if (isLeaf())
-			// {
-			// if (sentLookups == 0)
-			// return 0.5;
-			// return (double) successfulLookups / sentLookups;
-			// }
-			// double score = 0;
-			// for (FingerNode fingerNode : children)
-			// score += fingerNode.getScore();
-			// score /= children.size();
-			//
-			// return score;
-
-			if (sentLookups < MINIMUM_OBSERVATIONS)
+			if (sentLookups < minimumObservations)
 				return 0.5;
 			return (double) successfulLookups / sentLookups;
 		}

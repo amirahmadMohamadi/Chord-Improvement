@@ -9,11 +9,25 @@ import kmaru.jchord.halo.HaloChord;
 public class RedsChord extends HaloChord
 {
 
-	int bucketSize;
-	public RedsChord(double maliciousNodeProbability, int haloRedundancy, int bucketSize)
+	int							bucketSize;
+	private int					reputationTreeDepth;
+	private int					minimumObservations;
+	private ScoringAlgorithm	scoringAlgorithm;
+
+	public int helps;
+	public int helps2;
+
+	public RedsChord(double maliciousNodeProbability, int haloRedundancy, int bucketSize, int reputationTreDepth,
+			int minimumObservations, ScoringAlgorithm scoringAlgorithm)
 	{
 		super(maliciousNodeProbability, haloRedundancy);
 		this.bucketSize = bucketSize;
+		this.reputationTreeDepth = reputationTreDepth;
+		this.minimumObservations = minimumObservations;
+		this.scoringAlgorithm = scoringAlgorithm;
+		
+		helps = 0;
+		helps2 = 0;
 	}
 
 	public void createNode(String nodeId) throws ChordException
@@ -47,6 +61,21 @@ public class RedsChord extends HaloChord
 		}
 
 		sortedNodeMap.put(node.getNodeKey(), node);
+	}
+
+	public int getReputationTreeDepth()
+	{
+		return reputationTreeDepth;
+	}
+
+	public int getMinimumObservations()
+	{
+		return minimumObservations;
+	}
+	
+	public ScoringAlgorithm getScoringAlgorithm()
+	{
+		return scoringAlgorithm;
 	}
 
 }

@@ -2,7 +2,9 @@ package kmaru.jchord;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ChordNode
 {
@@ -61,9 +63,9 @@ public class ChordNode
 			}
 			return node.locate(key);
 		}
-	
+
 	}
-	
+
 	/**
 	 * Lookup a successor of given key
 	 * 
@@ -109,7 +111,7 @@ public class ChordNode
 
 		if (tempNode == null)
 			tempNode = this;
-		
+
 		for (int i = Hash.KEY_LENGTH - 1; i >= 0; i--)
 		{
 			Finger finger = fingerTable.getFinger(i);
@@ -272,5 +274,24 @@ public class ChordNode
 	public boolean isMalicious()
 	{
 		return false;
+	}
+
+	public boolean hasFinger(ChordNode node)
+	{
+		for (int i = 0; i < Hash.KEY_LENGTH; i++)
+			if (getFingerTable().getFinger(i).getNode().equals(node))
+				return true;
+		return false;
+	}
+
+	public ChordNode getFingerNode(int i)
+	{
+		Set<ChordNode> fingerSet = new HashSet<>();
+		for (int j = 0; j < Hash.KEY_LENGTH; j++)
+			fingerSet.add(getFingerTable().getFinger(j).getNode());
+		List<ChordNode> fingerList = new ArrayList<>(fingerSet);
+		if (i < fingerList.size())
+			return fingerList.get(i);
+		return fingerList.get(0);
 	}
 }

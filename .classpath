@@ -11,6 +11,9 @@
 	<classpathentry kind="lib" path="lib/jfreechart-1.0.19/lib/jfreechart-1.0.19.jar"/>
 	<classpathentry kind="lib" path="lib/jfreechart-1.0.19/lib/jcommon-1.0.23.jar"/>
 	<classpathentry kind="lib" path="lib/JGraphX/jgraphx.jar"/>
+	<classpathentry kind="lib" path="lib/jgrapht-jgrapht-0.9.1/jgrapht-core-0.9.1.jar" sourcepath="lib/jgrapht-jgrapht-0.9.1/jgrapht-core/src/main/"/>
+	<classpathentry kind="lib" path="lib/jgrapht-jgrapht-0.9.1/jgrapht-ext-0.9.1.jar" sourcepath="lib/jgrapht-jgrapht-0.9.1/jgrapht-ext/src/main/java"/>
+	<classpathentry kind="lib" path="lib/jide/jide-oss-3.6.12.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
