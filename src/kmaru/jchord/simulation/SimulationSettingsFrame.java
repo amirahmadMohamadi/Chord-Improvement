@@ -23,10 +23,8 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
-import com.jidesoft.swing.RangeSlider;
+import com.jidesoft.dialog.JideOptionPane;
 
 import kmaru.jchord.reds.ScoringAlgorithm;
 import kmaru.jchord.simulation.Simulation.SimulationData;
@@ -44,7 +42,8 @@ public class SimulationSettingsFrame extends JFrame
 	private JFormattedTextField	keyLengthField;
 	private JFormattedTextField	nodesField;
 	private JFormattedTextField	repeatingTestField;
-	private RangeSlider			failureRateRangeSlider;
+	private JFormattedTextField	minFailureRateFormattedField;
+	private JFormattedTextField	maxFailureRateFormattedField;
 	private JFormattedTextField	haloRedundancyField;
 	private JCheckBox			drawNetworkCheckBox;
 	private JCheckBox			drawResultCheckBox;
@@ -63,6 +62,7 @@ public class SimulationSettingsFrame extends JFrame
 	private JFormattedTextField			minObservationsField;
 	private JFormattedTextField			reputationTreeDepthField;
 	private JComboBox<ScoringAlgorithm>	redsScoringComboBox;
+	private JPanel redsPanel;
 
 	/**
 	 * Launch the application.
@@ -101,7 +101,8 @@ public class SimulationSettingsFrame extends JFrame
 		keyLengthField.setValue(simulationData.getKeyLength());
 		nodesField.setValue(simulationData.getNumberOfNodes());
 		lookupsField.setValue(simulationData.getNumberOfLookups());
-		failureRateRangeSlider.setValue(0);
+		minFailureRateFormattedField.setValue(0);
+		maxFailureRateFormattedField.setValue(30);
 		repeatingTestField.setValue(simulationData.getRepeatingTestsNumber());
 		haloRedundancyField.setValue(simulationData.getHaloRedundancy());
 		bucketSizeField.setValue(simulationData.getBucketSize());
@@ -136,7 +137,7 @@ public class SimulationSettingsFrame extends JFrame
 	{
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 706, 513);
+		setBounds(100, 100, 706, 559);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -153,29 +154,116 @@ public class SimulationSettingsFrame extends JFrame
 				new TitledBorder(null, "Output Settings", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 
 		JPanel panel_3 = new JPanel();
+
+		redsPanel = new JPanel();
+		redsPanel.setBorder(new TitledBorder(null, "REDS Settings", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		GroupLayout gl_contentPane = new GroupLayout(contentPane);
-		gl_contentPane.setHorizontalGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
-				.addGroup(gl_contentPane.createSequentialGroup().addContainerGap()
-						.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
-								.addComponent(panel_3, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 623,
-										Short.MAX_VALUE)
-						.addComponent(panel_2, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 623, Short.MAX_VALUE)
-						.addComponent(panel_1, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addComponent(panel, GroupLayout.DEFAULT_SIZE, 623, Short.MAX_VALUE)).addContainerGap()));
-		gl_contentPane
-				.setVerticalGroup(
-						gl_contentPane.createParallelGroup(Alignment.LEADING)
-								.addGroup(
-										gl_contentPane.createSequentialGroup().addGap(14)
-												.addComponent(panel, GroupLayout.PREFERRED_SIZE, 64,
-														GroupLayout.PREFERRED_SIZE)
-										.addPreferredGap(ComponentPlacement.RELATED)
-										.addComponent(panel_1, GroupLayout.DEFAULT_SIZE, 240, Short.MAX_VALUE)
-										.addPreferredGap(ComponentPlacement.RELATED)
-										.addComponent(panel_2, GroupLayout.PREFERRED_SIZE, 62,
-												GroupLayout.PREFERRED_SIZE)
+		gl_contentPane.setHorizontalGroup(
+			gl_contentPane.createParallelGroup(Alignment.TRAILING)
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+						.addComponent(panel_1, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 684, Short.MAX_VALUE)
+						.addComponent(panel_3, GroupLayout.PREFERRED_SIZE, 684, Short.MAX_VALUE)
+						.addComponent(panel_2, GroupLayout.DEFAULT_SIZE, 684, Short.MAX_VALUE)
+						.addComponent(panel, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(redsPanel, GroupLayout.PREFERRED_SIZE, 684, GroupLayout.PREFERRED_SIZE))
+					.addContainerGap())
+		);
+		gl_contentPane.setVerticalGroup(
+			gl_contentPane.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addGap(14)
+					.addComponent(panel, GroupLayout.PREFERRED_SIZE, 64, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(redsPanel, GroupLayout.PREFERRED_SIZE, 115, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(panel_2, GroupLayout.PREFERRED_SIZE, 62, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(panel_3, GroupLayout.PREFERRED_SIZE, 60, GroupLayout.PREFERRED_SIZE)
+					.addContainerGap(12, Short.MAX_VALUE))
+		);
+
+		JLabel lblRedsBucketSize_1 = new JLabel("Minimum Obsevations");
+
+		minObservationsField = new JFormattedTextField();
+		minObservationsField.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				simulationData.setRedsMinObservations((int) minObservationsField.getValue());
+			}
+		});
+
+		JLabel reputationTreeDepthLabel = new JLabel("ReputationTree Chunk Size");
+		reputationTreeDepthLabel.setToolTipText("The chunk size will be 2 ^ (input)");
+
+		reputationTreeDepthField = new JFormattedTextField();
+		reputationTreeDepthField.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				simulationData.setRedsReputationTreeDepth((int) reputationTreeDepthField.getValue());
+			}
+		});
+		JLabel lblRedsScoringProtocol = new JLabel("Shared Reputation Algorithm");
+
+		redsScoringComboBox = new JComboBox<>(new DefaultComboBoxModel<>(ScoringAlgorithm.values()));
+		redsScoringComboBox.addItemListener(new ItemListener()
+		{
+			public void itemStateChanged(ItemEvent e)
+			{
+				if (e.getStateChange() == ItemEvent.SELECTED)
+				{
+					simulationData.setScoringAlgorithm((ScoringAlgorithm) redsScoringComboBox.getSelectedItem());
+				}
+			}
+		});
+
+		lblRedsBucketSize = new JLabel("Bucket Size");
+
+		bucketSizeField = new JFormattedTextField();
+		bucketSizeField.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				simulationData.setBucketSize((int) bucketSizeField.getValue());
+			}
+		});
+		GroupLayout gl_redsPanel = new GroupLayout(redsPanel);
+		gl_redsPanel.setHorizontalGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_redsPanel.createSequentialGroup().addContainerGap()
+						.addGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING).addComponent(lblRedsBucketSize_1)
+								.addComponent(lblRedsBucketSize))
+				.addGap(30)
+				.addGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING, false).addComponent(bucketSizeField)
+						.addComponent(minObservationsField, GroupLayout.DEFAULT_SIZE, 134, Short.MAX_VALUE))
+				.addGap(30)
+				.addGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING).addComponent(lblRedsScoringProtocol)
+						.addComponent(reputationTreeDepthLabel))
+				.addPreferredGap(ComponentPlacement.RELATED, 58, Short.MAX_VALUE)
+				.addGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING, false)
+						.addGroup(gl_redsPanel.createSequentialGroup().addComponent(reputationTreeDepthField)
+								.addContainerGap())
+						.addComponent(redsScoringComboBox, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 134,
+								GroupLayout.PREFERRED_SIZE))));
+		gl_redsPanel.setVerticalGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_redsPanel.createSequentialGroup().addGap(14)
+						.addGroup(gl_redsPanel.createParallelGroup(Alignment.BASELINE).addComponent(lblRedsBucketSize_1)
+								.addComponent(minObservationsField, GroupLayout.PREFERRED_SIZE,
+										GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(reputationTreeDepthLabel).addComponent(reputationTreeDepthField,
+								GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addPreferredGap(ComponentPlacement.UNRELATED)
-				.addComponent(panel_3, GroupLayout.PREFERRED_SIZE, 60, GroupLayout.PREFERRED_SIZE).addGap(12)));
+				.addGroup(gl_redsPanel.createParallelGroup(Alignment.BASELINE).addComponent(lblRedsBucketSize)
+						.addComponent(redsScoringComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+								GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblRedsScoringProtocol).addComponent(bucketSizeField, GroupLayout.PREFERRED_SIZE,
+								GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addContainerGap(8, Short.MAX_VALUE)));
+		redsPanel.setLayout(gl_redsPanel);
 
 		progressBar = new JProgressBar();
 
@@ -263,23 +351,16 @@ public class SimulationSettingsFrame extends JFrame
 			}
 		});
 
-		JLabel lblMaximumFailureRate = new JLabel("Maximum Failure Rate");
+		JLabel lblMaximumFailureRate = new JLabel("Minimum Failure Rate");
 
-		failureRateRangeSlider = new RangeSlider(0, 30);
-		failureRateRangeSlider.setMinimum(10);
-		failureRateRangeSlider.setHighValue(2);
-		failureRateRangeSlider.setLowValue(40);
-		failureRateRangeSlider.setPaintLabels(true);
-
-		failureRateRangeSlider.addChangeListener(new ChangeListener()
+		minFailureRateFormattedField = new JFormattedTextField();
+		minFailureRateFormattedField.addActionListener(new ActionListener()
 		{
+
 			@Override
-			public void stateChanged(ChangeEvent e)
+			public void actionPerformed(ActionEvent e)
 			{
-				simulationData.setMaxFailureRate((int) failureRateRangeSlider.getHighValue());
-				simulationData.setMinFailureRate((int) failureRateRangeSlider.getLowValue());
-				failureRateRangeSlider.setToolTipText("min = " + failureRateRangeSlider.getLowValue() / 100.0
-						+ " max = " + failureRateRangeSlider.getHighValue() / 100.0);
+				simulationData.setMinFailureRate((int) minFailureRateFormattedField.getValue());
 			}
 		});
 
@@ -316,17 +397,6 @@ public class SimulationSettingsFrame extends JFrame
 			}
 		});
 
-		lblRedsBucketSize = new JLabel("REDS Bucket Size");
-
-		bucketSizeField = new JFormattedTextField();
-		bucketSizeField.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				simulationData.setBucketSize((int) bucketSizeField.getValue());
-			}
-		});
-
 		JLabel lblProtocols = new JLabel("Protocols");
 
 		chordCheckBox = new JCheckBox("Chord");
@@ -359,118 +429,103 @@ public class SimulationSettingsFrame extends JFrame
 			public void actionPerformed(ActionEvent e)
 			{
 				if (redsCheckBox.isSelected())
-					simulationData.getRunningSimulations().add(ChordProtocol.REDS);
-				else
-					simulationData.getRunningSimulations().remove(ChordProtocol.REDS);
-
-			}
-		});
-
-		JLabel lblRedsBucketSize_1 = new JLabel("REDS Min Obsevations");
-
-		minObservationsField = new JFormattedTextField();
-		minObservationsField.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				simulationData.setRedsMinObservations((int) minObservationsField.getValue());
-			}
-		});
-
-		JLabel reputationTreeDepthLabel = new JLabel("REDS ReputationTree Chunk Size");
-		reputationTreeDepthLabel.setToolTipText("The chunk size will be 2 ^ (input)");
-
-		reputationTreeDepthField = new JFormattedTextField();
-		reputationTreeDepthField.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				simulationData.setRedsReputationTreeDepth((int) reputationTreeDepthField.getValue());
-			}
-		});
-
-		redsScoringComboBox = new JComboBox<>(new DefaultComboBoxModel<>(ScoringAlgorithm.values()));
-		redsScoringComboBox.addItemListener(new ItemListener()
-		{
-			public void itemStateChanged(ItemEvent e)
-			{
-				if (e.getStateChange() == ItemEvent.SELECTED)
 				{
-					simulationData.setScoringAlgorithm((ScoringAlgorithm) redsScoringComboBox.getSelectedItem());
+					simulationData.getRunningSimulations().add(ChordProtocol.REDS);
+					redsPanel.setVisible(true);
+					SimulationSettingsFrame.this.setSize(706, 559);
+					SimulationSettingsFrame.this.pack();
 				}
+				else
+				{
+					simulationData.getRunningSimulations().remove(ChordProtocol.REDS);
+					redsPanel.setVisible(false);
+					SimulationSettingsFrame.this.setSize(706, 409);
+					SimulationSettingsFrame.this.pack();
+
+				}
+
 			}
 		});
-		JLabel lblRedsScoringProtocol = new JLabel("REDS Scoring Algorithm");
+
+		JLabel lblMaximumFailureRate_1 = new JLabel("Maximum Failure Rate");
+
+		maxFailureRateFormattedField = new JFormattedTextField();
+		maxFailureRateFormattedField.addActionListener(new ActionListener()
+		{
+
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				simulationData.setMaxFailureRate((int) maxFailureRateFormattedField.getValue());
+			}
+		});
+
 		GroupLayout gl_panel_1 = new GroupLayout(panel_1);
-		gl_panel_1.setHorizontalGroup(gl_panel_1.createParallelGroup(Alignment.LEADING).addGroup(gl_panel_1
-				.createSequentialGroup().addGap(15)
-				.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING).addComponent(lblNumberOfRepeating)
-						.addComponent(lblNodes).addComponent(lblNumberOfLookups).addComponent(lblRedsBucketSize_1)
-						.addComponent(lblProtocols).addComponent(lblRedsScoringProtocol))
-				.addGap(7)
-				.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+		gl_panel_1.setHorizontalGroup(
+			gl_panel_1.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_panel_1.createSequentialGroup()
+					.addGap(15)
+					.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+						.addComponent(lblNumberOfRepeating)
+						.addComponent(lblNodes)
+						.addComponent(lblNumberOfLookups)
+						.addComponent(lblProtocols))
+					.addGap(32)
+					.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
 						.addGroup(gl_panel_1.createSequentialGroup()
-								.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
-										.addComponent(redsScoringComboBox, Alignment.TRAILING, 0, 134, Short.MAX_VALUE)
-										.addComponent(minObservationsField, GroupLayout.DEFAULT_SIZE, 134,
-												Short.MAX_VALUE)
+							.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
 								.addComponent(lookupsField, GroupLayout.DEFAULT_SIZE, 134, Short.MAX_VALUE)
 								.addComponent(repeatingTestField, GroupLayout.DEFAULT_SIZE, 134, Short.MAX_VALUE)
-								.addComponent(nodesField, GroupLayout.DEFAULT_SIZE, 134, Short.MAX_VALUE)).addGap(30))
-						.addGroup(gl_panel_1.createSequentialGroup().addComponent(chordCheckBox)
-								.addPreferredGap(ComponentPlacement.RELATED)))
-				.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING).addComponent(lblMaximumFailureRate)
-						.addComponent(lblHaloRedundancy).addComponent(reputationTreeDepthLabel)
-						.addComponent(lblRedsBucketSize).addComponent(haloCheckBox))
-				.addPreferredGap(ComponentPlacement.UNRELATED)
-				.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING).addGroup(gl_panel_1.createSequentialGroup()
-						.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING).addComponent(redsCheckBox)
-								.addComponent(bucketSizeField, GroupLayout.DEFAULT_SIZE, 113, Short.MAX_VALUE)
-								.addComponent(reputationTreeDepthField, GroupLayout.DEFAULT_SIZE, 113, Short.MAX_VALUE))
-						.addContainerGap())
-						.addGroup(Alignment.TRAILING, gl_panel_1.createSequentialGroup()
-								.addGroup(gl_panel_1.createParallelGroup(Alignment.TRAILING)
-										.addComponent(haloRedundancyField, Alignment.LEADING, GroupLayout.DEFAULT_SIZE,
-												113, Short.MAX_VALUE)
-										.addComponent(failureRateRangeSlider, GroupLayout.DEFAULT_SIZE, 113,
-												Short.MAX_VALUE))
-								.addContainerGap()))));
-		gl_panel_1.setVerticalGroup(gl_panel_1.createParallelGroup(Alignment.LEADING).addGroup(gl_panel_1
-				.createSequentialGroup().addContainerGap()
-				.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
-						.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE).addComponent(lblMaximumFailureRate)
-								.addComponent(lblNodes).addComponent(nodesField, GroupLayout.PREFERRED_SIZE,
-										GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-						.addComponent(failureRateRangeSlider, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-								GroupLayout.PREFERRED_SIZE))
-				.addGap(9)
-				.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE).addComponent(lblNumberOfRepeating)
+								.addComponent(nodesField, GroupLayout.DEFAULT_SIZE, 134, Short.MAX_VALUE))
+							.addGap(30))
+						.addGroup(gl_panel_1.createSequentialGroup()
+							.addComponent(chordCheckBox)
+							.addPreferredGap(ComponentPlacement.RELATED)))
+					.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+						.addComponent(lblMaximumFailureRate)
+						.addGroup(gl_panel_1.createSequentialGroup()
+							.addGap(28)
+							.addComponent(haloCheckBox))
 						.addComponent(lblHaloRedundancy)
-						.addComponent(haloRedundancyField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-								GroupLayout.PREFERRED_SIZE)
-						.addComponent(repeatingTestField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-								GroupLayout.PREFERRED_SIZE))
-				.addPreferredGap(ComponentPlacement.UNRELATED)
-				.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE).addComponent(lblNumberOfLookups)
-						.addComponent(lookupsField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-								GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblRedsBucketSize).addComponent(bucketSizeField, GroupLayout.PREFERRED_SIZE,
-								GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addGap(11)
-				.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE).addComponent(lblRedsBucketSize_1)
-						.addComponent(minObservationsField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-								GroupLayout.PREFERRED_SIZE)
-						.addComponent(reputationTreeDepthLabel).addComponent(reputationTreeDepthField,
-								GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addGap(10)
-				.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE)
-						.addComponent(redsScoringComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-								GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblRedsScoringProtocol))
-				.addGap(9)
-				.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE).addComponent(chordCheckBox)
-						.addComponent(haloCheckBox).addComponent(redsCheckBox).addComponent(lblProtocols))
-				.addContainerGap()));
+						.addComponent(lblMaximumFailureRate_1))
+					.addGap(75)
+					.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+						.addComponent(maxFailureRateFormattedField, GroupLayout.DEFAULT_SIZE, 116, Short.MAX_VALUE)
+						.addComponent(redsCheckBox)
+						.addComponent(minFailureRateFormattedField, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 116, Short.MAX_VALUE)
+						.addComponent(haloRedundancyField, GroupLayout.DEFAULT_SIZE, 113, Short.MAX_VALUE))
+					.addContainerGap())
+		);
+		gl_panel_1.setVerticalGroup(
+			gl_panel_1.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_panel_1.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE)
+							.addComponent(lblMaximumFailureRate)
+							.addComponent(lblNodes)
+							.addComponent(nodesField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addComponent(minFailureRateFormattedField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addGap(9)
+					.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblNumberOfRepeating)
+						.addComponent(repeatingTestField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblMaximumFailureRate_1)
+						.addComponent(maxFailureRateFormattedField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblNumberOfLookups)
+						.addComponent(lookupsField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblHaloRedundancy)
+						.addComponent(haloRedundancyField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addGap(12)
+					.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE)
+						.addComponent(chordCheckBox)
+						.addComponent(redsCheckBox)
+						.addComponent(lblProtocols)
+						.addComponent(haloCheckBox))
+					.addContainerGap())
+		);
 		panel_1.setLayout(gl_panel_1);
 
 		hashFunctionComboBox = new JComboBox<>();
@@ -516,7 +571,9 @@ public class SimulationSettingsFrame extends JFrame
 
 	protected void validateSimulationData()
 	{
-
+		if ((int) minFailureRateFormattedField.getValue() > (int) maxFailureRateFormattedField.getValue())
+			JideOptionPane.showMessageDialog(this, "min failure rate must be less than max failure rate", "Error",
+					JideOptionPane.ERROR_MESSAGE);
 	}
 
 	protected void gatherSimulationData()
@@ -526,8 +583,8 @@ public class SimulationSettingsFrame extends JFrame
 		simulationData.setResultSaved(saveToFileCheckBox.isSelected());
 
 		simulationData.setNumberOfNodes((int) nodesField.getValue());
-		simulationData.setMaxFailureRate((int) failureRateRangeSlider.getHighValue());
-		simulationData.setMinFailureRate((int) failureRateRangeSlider.getLowValue());
+		simulationData.setMinFailureRate((int) minFailureRateFormattedField.getValue());
+		simulationData.setMaxFailureRate((int) maxFailureRateFormattedField.getValue());
 		simulationData.setRepeatingTestsNumber((int) repeatingTestField.getValue());
 		simulationData.setHaloRedundancy((int) haloRedundancyField.getValue());
 		simulationData.setNumberOfLookups((int) lookupsField.getValue());

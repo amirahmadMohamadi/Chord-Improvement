@@ -237,7 +237,7 @@ public class RedsChordNode extends HaloChordNode
 	public int calculateBestHelpingPeerConsensus(ChordKey key, ChordNode peer)
 	{
 		int bestHelpingPeer = 0;
-		if (scoreMap.get(peer.getNodeKey()) == null)
+		if (scoreMap.get(peer.getNodeKey()) == null || sharedKnucklesMap.get(peer.getNodeKey()) == null)
 			return bestHelpingPeer;
 
 		SimpleGraph<RedsChordNode, ConsensusGraphEdge> graph = new SimpleGraph<>(ConsensusGraphEdge.class);
