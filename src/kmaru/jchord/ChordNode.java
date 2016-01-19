@@ -9,15 +9,13 @@ import java.util.Set;
 public class ChordNode
 {
 
-	String nodeId;
+	String						nodeId;
+	ChordKey					nodeKey;
+	protected ChordNode			predecessor;
+	protected List<ChordNode>	successorList;
+	protected FingerTable		fingerTable;
 
-	ChordKey nodeKey;
-
-	protected ChordNode predecessor;
-
-	protected List<ChordNode> successorList;
-
-	protected FingerTable fingerTable;
+	private int numberOfLocateOperations;
 
 	public int SUCCESSOR_LIST_SIZE = 10;
 
@@ -26,6 +24,7 @@ public class ChordNode
 		this.nodeId = nodeId;
 		this.nodeKey = new ChordKey(nodeId);
 		this.fingerTable = new FingerTable(this);
+		numberOfLocateOperations = 0;
 		this.create();
 	}
 
@@ -44,6 +43,8 @@ public class ChordNode
 
 	public ChordNode locate(ChordKey key)
 	{
+		numberOfLocateOperations++;
+
 		if (this == successorList.get(0))
 		{
 			return this;
@@ -134,6 +135,32 @@ public class ChordNode
 		successorList.add(this);
 	}
 
+	public void leave()
+	{
+		successorList.get(0).predecessorRemoved();
+		if (getPredecessor() != null)
+			getPredecessor().successorRemved(this);
+	}
+
+	private void successorRemved(ChordNode node)
+	{
+		if (successorList.contains(node))
+		{
+			successorList.remove(node);
+			successorList.addAll(successorList.get(successorList.size() - 1).successorList);
+			while (successorList.size() > SUCCESSOR_LIST_SIZE)
+				successorList.remove(successorList.size() - 1);
+
+			if (getPredecessor() != null && getPredecessor() != this)
+				getPredecessor().successorRemved(node);
+		}
+	}
+
+	private void predecessorRemoved()
+	{
+		predecessor = predecessor.getPredecessor();
+	}
+
 	/**
 	 * Joins a Chord ring with a node in the Chord ring
 	 * 
@@ -167,6 +194,7 @@ public class ChordNode
 		while (successorList.size() > SUCCESSOR_LIST_SIZE)
 			successorList.remove(successorList.size() - 1);
 		successorList.get(0).notifyPredecessor(this);
+
 	}
 
 	private void notifyPredecessor(ChordNode node)
@@ -191,6 +219,41 @@ public class ChordNode
 		}
 	}
 
+	public void fixSuccessorList()
+	{
+		ChordNode chordNode = null;
+		for (int i = 0; i < successorList.size() - 1; i++)
+		{
+			chordNode = successorList.get(i);
+			if (chordNode.getSuccessor().equals(successorList.get(i + 1)) == false)
+				break;
+		}
+
+		if (chordNode != null)
+		{
+			successorList.subList(successorList.indexOf(chordNode) + 1, successorList.size()).clear();;
+			successorList.add(chordNode.getSuccessor());
+			successorList.addAll(chordNode.getSuccessor().successorList);
+			while (successorList.size() > SUCCESSOR_LIST_SIZE)
+				successorList.remove(successorList.size() - 1);
+
+		}
+	}
+
+	public void validateSuccessorList()
+	{
+		if (successorList.get(0).getPredecessor().equals(this) == false)
+			throw new IllegalArgumentException("Successor is incorrect!");
+			
+		for (int i = 0; i < successorList.size() - 1; i++)
+		{
+			ChordNode chordNode = successorList.get(i);
+			if (chordNode.getSuccessor().equals(successorList.get(i + 1)) == false)
+				throw new IllegalArgumentException("Successor list is incorrect!");
+		}
+	}
+
+	@Override
 	public String toString()
 	{
 		StringBuilder sb = new StringBuilder();
@@ -294,4 +357,18 @@ public class ChordNode
 			return fingerList.get(i);
 		return fingerList.get(0);
 	}
+
+	public static boolean validateResult(ChordNode resultNode, ChordKey key)
+	{
+		if (resultNode.getPredecessor() == null)
+			return false;
+		return key.isBetween(resultNode.getPredecessor().getNodeKey(), resultNode.getNodeKey())
+				|| resultNode.getNodeKey().equals(key);
+	}
+
+	public int getNumberOfLocateOperations()
+	{
+		return numberOfLocateOperations;
+	}
+
 }

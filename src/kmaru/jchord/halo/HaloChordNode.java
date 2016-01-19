@@ -51,20 +51,29 @@ public class HaloChordNode extends ChordNode
 				else
 					knuckle = ((HaloChordNode) node).chordLocate(knuckleKey);
 			}
+			
+			if (knuckle == null)
+				throw new IllegalStateException("locate result is null");
+			
 			ChordNode improvedKnuckle = improveKnucleEstimate(knuckle, key, knuckleKey, i);
 			knuckleList.add(improvedKnuckle);
 
 			ChordNode finger = improvedKnuckle.getFingerTable().getFinger(Hash.KEY_LENGTH - 1 - i).getNode();
+
+			// TODO this makes results better but I don't know why this happens
+//			if (validateResult(finger.getPredecessor(), key))
+//				finger = finger.getPredecessor();
 			resultList.add(finger);
 		}
 		ChordNode chordResult = ((HaloChordNode) node).chordLocate(key);
 		resultList.add(chordResult);
-		
+
 		return resultList;
 	}
 
 	/**
-	 * Returns a node that it's ith finger is the specified key. The algorithm is based on knuckle search algorithm 
+	 * Returns a node that it's ith finger is the specified key. The algorithm
+	 * is based on knuckle search algorithm
 	 * 
 	 * @param key
 	 * @param i
@@ -76,13 +85,16 @@ public class HaloChordNode extends ChordNode
 		ChordNode knuckle = chordLocate(knuckleKey);
 		return improveKnucleEstimate(knuckle, key, knuckleKey, i);
 	}
-	
+
 	protected ChordNode chordLocate(ChordKey key)
 	{
 		if (this == successorList.get(0))
 		{
 			return this;
 		}
+
+		if (validateResult(this, key))
+			return this;
 
 		if (key.isBetween(this.getNodeKey(), successorList.get(0).getNodeKey())
 				|| key.compareTo(successorList.get(0).getNodeKey()) == 0)
@@ -99,24 +111,24 @@ public class HaloChordNode extends ChordNode
 			return ((HaloChordNode) node).chordLocate(key);
 		}
 	}
-	
+
 	protected ChordNode reviewResults(ChordKey key, List<ChordNode> resultList)
 	{
-		
+
 		SortedMap<ChordKey, ChordNode> results = new TreeMap<>();
-		
+
 		for (ChordNode chordNode : resultList)
 		{
 			results.put(chordNode.getNodeKey(), chordNode);
 		}
-		
+
 		for (ChordKey chordKey : results.keySet())
 		{
 			if (chordKey.compareTo(key) >= 0)
 				return results.get(chordKey);
 		}
 		return results.get(new ArrayList<>(results.keySet()).get(results.size() - 1));
-	
+
 	}
 
 	private static ChordNode improveKnucleEstimate(ChordNode knuckle, ChordKey key, ChordKey knuckleKey, int i)
@@ -137,28 +149,30 @@ public class HaloChordNode extends ChordNode
 		return haloChord;
 	}
 
-//	@Override
-//	public void join(ChordNode node)
-//	{
-//		predecessor = null;
-//		successorList.clear();
-//		successorList.add(this);
-//		ChordNode haLocate = Halo.HALocate(node, new ChordKey(this.getNodeId()), haloChord.getHaloRedundancy(),
-//				haloChord.getTrustedNodes());
-//		successorList.clear();
-//		successorList.add(haLocate);
-//	}
-//
-//	@Override
-//	public void fixFingers()
-//	{
-//		for (int i = 0; i < Hash.KEY_LENGTH; i++)
-//		{
-//			Finger finger = fingerTable.getFinger(i);
-//			ChordKey key = finger.getStart();
-//			// finger.setNode(findSuccessor(key));
-//			finger.setNode(Halo.HALocate(this, key, haloChord.getHaloRedundancy(), haloChord.getTrustedNodes()));
-//		}
-//	}
+	// @Override
+	// public void join(ChordNode node)
+	// {
+	// predecessor = null;
+	// successorList.clear();
+	// successorList.add(this);
+	// ChordNode haLocate = Halo.HALocate(node, new ChordKey(this.getNodeId()),
+	// haloChord.getHaloRedundancy(),
+	// haloChord.getTrustedNodes());
+	// successorList.clear();
+	// successorList.add(haLocate);
+	// }
+	//
+	// @Override
+	// public void fixFingers()
+	// {
+	// for (int i = 0; i < Hash.KEY_LENGTH; i++)
+	// {
+	// Finger finger = fingerTable.getFinger(i);
+	// ChordKey key = finger.getStart();
+	// // finger.setNode(findSuccessor(key));
+	// finger.setNode(Halo.HALocate(this, key, haloChord.getHaloRedundancy(),
+	// haloChord.getTrustedNodes()));
+	// }
+	// }
 
 }

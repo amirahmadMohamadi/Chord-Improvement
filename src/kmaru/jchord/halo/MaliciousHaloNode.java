@@ -13,15 +13,11 @@ public class MaliciousHaloNode extends HaloChordNode
 		super(nodeId, haloChord);
 	}
 
-	
-	
 	@Override
 	protected ChordNode chordLocate(ChordKey key)
 	{
 		return locate(key);
 	}
-
-
 
 	@Override
 	public ChordNode locate(ChordKey key)
@@ -31,7 +27,10 @@ public class MaliciousHaloNode extends HaloChordNode
 			return this;
 		}
 
-		return closestMaliciousNode(key);
+		ChordNode closestMaliciousNode = closestMaliciousNode(key);
+		if (closestMaliciousNode != null)
+			return closestMaliciousNode;
+		return this;
 	}
 
 	private ChordNode closestMaliciousNode(ChordKey key)

@@ -45,13 +45,13 @@ public class ReputationTree
 				currentNode.addChild(nextNode);
 			}
 
-			currentNode.sentLookups += successfulLookups < 0 ? (-1 * successfulLookups) : successfulLookups;
+			currentNode.sentLookups += Math.abs(successfulLookups);
 			currentNode.successfulLookups += successfulLookups;
 
 			currentNode = nextNode;
 		}
 
-		currentNode.sentLookups += successfulLookups < 0 ? (-1 * successfulLookups) : successfulLookups;
+		currentNode.sentLookups += Math.abs(successfulLookups);
 		currentNode.successfulLookups += successfulLookups;
 	}
 

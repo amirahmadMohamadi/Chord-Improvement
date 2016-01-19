@@ -12,7 +12,7 @@ import kmaru.jchord.reds.RedsChordNode;
 import kmaru.jchord.reds.ReputationTree;
 import kmaru.jchord.simulation.ChordProtocol;
 import kmaru.jchord.simulation.Simulation;
-import kmaru.jchord.simulation.Simulation.SimulationData;
+import kmaru.jchord.simulation.SimulationData;
 
 public class ReputationTreeTest
 {

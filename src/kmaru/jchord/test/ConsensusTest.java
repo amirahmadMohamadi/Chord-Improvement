@@ -14,7 +14,7 @@ import kmaru.jchord.reds.RedsChord;
 import kmaru.jchord.reds.RedsChordNode;
 import kmaru.jchord.simulation.ChordProtocol;
 import kmaru.jchord.simulation.Simulation;
-import kmaru.jchord.simulation.Simulation.SimulationData;
+import kmaru.jchord.simulation.SimulationData;
 
 public class ConsensusTest
 {

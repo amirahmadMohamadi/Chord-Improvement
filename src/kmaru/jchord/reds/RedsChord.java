@@ -1,10 +1,13 @@
 package kmaru.jchord.reds;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import kmaru.jchord.ChordException;
 import kmaru.jchord.ChordNode;
 import kmaru.jchord.halo.HaloChord;
+import kmaru.jchord.simulation.ChordProtocol;
 
 public class RedsChord extends HaloChord
 {
@@ -14,9 +17,6 @@ public class RedsChord extends HaloChord
 	private int					minimumObservations;
 	private ScoringAlgorithm	scoringAlgorithm;
 
-	public int helps;
-	public int helps2;
-
 	public RedsChord(double maliciousNodeProbability, int haloRedundancy, int bucketSize, int reputationTreDepth,
 			int minimumObservations, ScoringAlgorithm scoringAlgorithm)
 	{
@@ -25,12 +25,10 @@ public class RedsChord extends HaloChord
 		this.reputationTreeDepth = reputationTreDepth;
 		this.minimumObservations = minimumObservations;
 		this.scoringAlgorithm = scoringAlgorithm;
-		
-		helps = 0;
-		helps2 = 0;
 	}
 
-	public void createNode(String nodeId) throws ChordException
+	@Override
+	public ChordNode createNode(String nodeId) throws ChordException
 	{
 		Random rand = new Random(System.nanoTime());
 		ChordNode node;
@@ -47,9 +45,12 @@ public class RedsChord extends HaloChord
 		}
 
 		sortedNodeMap.put(node.getNodeKey(), node);
+		
+		return node;
 	}
 
-	public void createMaliciousNode(String nodeId) throws ChordException
+	@Override
+	public ChordNode createMaliciousNode(String nodeId) throws ChordException
 	{
 		ChordNode node = new MaliciousRedsNode(nodeId, this);
 
@@ -61,6 +62,8 @@ public class RedsChord extends HaloChord
 		}
 
 		sortedNodeMap.put(node.getNodeKey(), node);
+		
+		return node;
 	}
 
 	public int getReputationTreeDepth()
@@ -77,5 +80,26 @@ public class RedsChord extends HaloChord
 	{
 		return scoringAlgorithm;
 	}
+	
+	@Override
+	public List<ChordNode> getMaliciousNodeList()
+	{
+		List<ChordNode> list = new ArrayList<>();
+
+		for (ChordNode node : nodeList)
+		{
+			if (node instanceof MaliciousRedsNode)
+				list.add(node);
+		}
+
+		return list;
+	}
+
+	@Override
+	public ChordProtocol getProtocol()
+	{
+		return ChordProtocol.REDS;
+	}
+
 
 }

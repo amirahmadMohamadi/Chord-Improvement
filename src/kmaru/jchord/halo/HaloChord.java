@@ -7,6 +7,7 @@ import java.util.Random;
 import kmaru.jchord.Chord;
 import kmaru.jchord.ChordException;
 import kmaru.jchord.ChordNode;
+import kmaru.jchord.simulation.ChordProtocol;
 
 public class HaloChord extends Chord
 {
@@ -19,7 +20,8 @@ public class HaloChord extends Chord
 		this.haloRedundancy = haloRedundancy;
 	}
 
-	public void createNode(String nodeId) throws ChordException
+	@Override
+	public ChordNode createNode(String nodeId) throws ChordException
 	{
 		Random rand = new Random(System.nanoTime());
 		ChordNode node;
@@ -36,9 +38,12 @@ public class HaloChord extends Chord
 		}
 
 		sortedNodeMap.put(node.getNodeKey(), node);
+		
+		return node;
 	}
 
-	public void createMaliciousNode(String nodeId) throws ChordException
+	@Override
+	public ChordNode createMaliciousNode(String nodeId) throws ChordException
 	{
 		ChordNode node = new MaliciousHaloNode(nodeId, this);
 
@@ -50,6 +55,8 @@ public class HaloChord extends Chord
 		}
 
 		sortedNodeMap.put(node.getNodeKey(), node);
+		
+		return node;
 	}
 
 	public int getHaloRedundancy()
@@ -66,6 +73,26 @@ public class HaloChord extends Chord
 			trustedNodes.add(getNode(i));
 		}
 		return trustedNodes;
+	}
+
+	@Override
+	public List<ChordNode> getMaliciousNodeList()
+	{
+		List<ChordNode> list = new ArrayList<>();
+
+		for (ChordNode node : nodeList)
+		{
+			if (node instanceof MaliciousHaloNode)
+				list.add(node);
+		}
+
+		return list;
+	}
+
+	@Override
+	public ChordProtocol getProtocol()
+	{
+		return ChordProtocol.HALO;
 	}
 
 }

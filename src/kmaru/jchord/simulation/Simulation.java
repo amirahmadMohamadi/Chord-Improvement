@@ -34,246 +34,10 @@ import kmaru.jchord.halo.HaloChord;
 import kmaru.jchord.reds.RedsChord;
 import kmaru.jchord.reds.RedsChordNode;
 import kmaru.jchord.reds.ScoringAlgorithm;
+import kmaru.jchord.simulation.SimulationData.DEFAULT_SIMULATION_SETTINGS;
 
 public class Simulation
 {
-
-	public static class SimulationData
-	{
-		private boolean					isNetworkRingDrawn;
-		private boolean					isResultDrawn;
-		private boolean					isResultSaved;
-		private EnumSet<ChordProtocol>	runningSimulations;
-		private String					hashFunction;
-		private int						keyLength;
-		private int						numberOfNodes;
-		private int						numberOfLookups;
-		private int						maxFailureRate;
-		private int						minFailureRate;
-		private int						repeatingTestsNumber;
-		private int						haloRedundancy;
-		private int						bucketSize;
-		private int						redsMinObservations;
-		private int						redsReputationTreeDepth;
-		private ScoringAlgorithm		scoringAlgorithm;
-
-		public SimulationData()
-		{
-			this.hashFunction = DEFAULT_SIMULATION_SETTINGS.HASH_FUNCTION;
-			this.keyLength = DEFAULT_SIMULATION_SETTINGS.KEY_LENGTH;
-			this.runningSimulations = EnumSet.noneOf(ChordProtocol.class);
-			scoringAlgorithm = ScoringAlgorithm.DropOff;
-			this.minFailureRate = 0;
-		}
-
-		public SimulationData(SimulationData simulationData)
-		{
-			this(simulationData.isNetworkRingDrawn, simulationData.isResultDrawn, simulationData.isResultSaved,
-					simulationData.runningSimulations, simulationData.hashFunction, simulationData.keyLength,
-					simulationData.numberOfNodes, simulationData.numberOfLookups, simulationData.maxFailureRate,
-					simulationData.repeatingTestsNumber, simulationData.haloRedundancy, simulationData.bucketSize,
-					simulationData.redsMinObservations, simulationData.redsReputationTreeDepth,
-					simulationData.scoringAlgorithm);
-		}
-
-		public SimulationData(boolean isNetworkRingDrawn, boolean isResultDrawn, boolean isResultSaved,
-				EnumSet<ChordProtocol> runningSimulations, String hashFunction, int keyLength, int numberOfNodes,
-				int numberOfLookups, int maxFailureRate, int repeatingTestsNumber, int haloRedundancy, int bucketSize,
-				int redsMinObservations, int redsReputationTreeDepth, ScoringAlgorithm scoringAlgorithm)
-		{
-			this.isNetworkRingDrawn = isNetworkRingDrawn;
-			this.isResultDrawn = isResultDrawn;
-			this.isResultSaved = isResultSaved;
-			this.runningSimulations = runningSimulations;
-			this.hashFunction = hashFunction;
-			this.keyLength = keyLength;
-			this.numberOfNodes = numberOfNodes;
-			this.numberOfLookups = numberOfLookups;
-			this.maxFailureRate = maxFailureRate;
-			this.repeatingTestsNumber = repeatingTestsNumber;
-			this.haloRedundancy = haloRedundancy;
-			this.bucketSize = bucketSize;
-			this.redsMinObservations = redsMinObservations;
-			this.redsReputationTreeDepth = redsReputationTreeDepth;
-			this.scoringAlgorithm = scoringAlgorithm;
-
-			this.minFailureRate = 0;
-		}
-
-		public boolean isNetworkRingDrawn()
-		{
-			return isNetworkRingDrawn;
-		}
-
-		public void setNetworkRingDrawn(boolean isNetworkRingDrawn)
-		{
-			this.isNetworkRingDrawn = isNetworkRingDrawn;
-		}
-
-		public boolean isResultDrawn()
-		{
-			return isResultDrawn;
-		}
-
-		public void setResultDrawn(boolean isResultDrawn)
-		{
-			this.isResultDrawn = isResultDrawn;
-		}
-
-		public boolean isResultSaved()
-		{
-			return isResultSaved;
-		}
-
-		public void setResultSaved(boolean isResultSaved)
-		{
-			this.isResultSaved = isResultSaved;
-		}
-
-		public EnumSet<ChordProtocol> getRunningSimulations()
-		{
-			return runningSimulations;
-		}
-
-		public void setRunningSimulations(EnumSet<ChordProtocol> runningSimulations)
-		{
-			this.runningSimulations = runningSimulations;
-		}
-
-		public String getHashFunction()
-		{
-			return hashFunction;
-		}
-
-		public void setHashFunction(String hashFunction)
-		{
-			this.hashFunction = hashFunction;
-		}
-
-		public int getKeyLength()
-		{
-			return keyLength;
-		}
-
-		public void setKeyLength(int keyLength)
-		{
-			this.keyLength = keyLength;
-		}
-
-		public int getNumberOfNodes()
-		{
-			return numberOfNodes;
-		}
-
-		public void setNumberOfNodes(int numberOfNodes)
-		{
-			this.numberOfNodes = numberOfNodes;
-		}
-
-		public int getNumberOfLookups()
-		{
-			return numberOfLookups;
-		}
-
-		public void setNumberOfLookups(int numberOfLookups)
-		{
-			this.numberOfLookups = numberOfLookups;
-		}
-
-		public int getMaxFailureRate()
-		{
-			return maxFailureRate;
-		}
-
-		public void setMaxFailureRate(int maxFailureRate)
-		{
-			this.maxFailureRate = maxFailureRate;
-		}
-
-		public int getMinFailureRate()
-		{
-			return minFailureRate;
-		}
-
-		public void setMinFailureRate(int minFailureRate)
-		{
-			this.minFailureRate = minFailureRate;
-		}
-
-		public int getRepeatingTestsNumber()
-		{
-			return repeatingTestsNumber;
-		}
-
-		public void setRepeatingTestsNumber(int repeatingTestsNumber)
-		{
-			this.repeatingTestsNumber = repeatingTestsNumber;
-		}
-
-		public int getHaloRedundancy()
-		{
-			return haloRedundancy;
-		}
-
-		public void setHaloRedundancy(int haloRedundancy)
-		{
-			this.haloRedundancy = haloRedundancy;
-		}
-
-		public int getBucketSize()
-		{
-			return bucketSize;
-		}
-
-		public void setBucketSize(int bucketSize)
-		{
-			this.bucketSize = bucketSize;
-		}
-
-		public int getRedsMinObservations()
-		{
-			return redsMinObservations;
-		}
-
-		public void setRedsMinObservations(int redsMinObservations)
-		{
-			this.redsMinObservations = redsMinObservations;
-		}
-
-		public int getRedsReputationTreeDepth()
-		{
-			return redsReputationTreeDepth;
-		}
-
-		public void setRedsReputationTreeDepth(int redsReputationTreeDepth)
-		{
-			this.redsReputationTreeDepth = redsReputationTreeDepth;
-		}
-
-		public ScoringAlgorithm getScoringAlgorithm()
-		{
-			return this.scoringAlgorithm;
-		}
-
-		public void setScoringAlgorithm(ScoringAlgorithm scoringAlgorithm)
-		{
-			this.scoringAlgorithm = scoringAlgorithm;
-		}
-	}
-
-	public static class DEFAULT_SIMULATION_SETTINGS
-	{
-		public static final String	HASH_FUNCTION				= "SHA-1";
-		public static final int		KEY_LENGTH					= 160;
-		public static final int		NUM_OF_NODES				= 100;
-		public static final int		NUM_OF_LOOKUPS				= 1000;
-		public static final int		MAX_MALICIOUS_PROBABILITY	= 31;
-		public static final int		NUM_OF_REPEATING_TESTS		= 10;
-		public static final int		NUM_OF_HALO_REDUNDANCY		= 5;
-		public static final int		NUM_OF_BUCKET_SIZE			= 2;
-		public static final int		REDS_MINIMUM_OBSERVATIONS	= 3;
-		public static final int		REDS_REPUTATION_TREE_DEPTH	= 130;
-	}
 
 	public static final SimulationData DEFAULT_SIMULATION_DATA = new SimulationData(true, true, true,
 			EnumSet.of(ChordProtocol.REDS, ChordProtocol.HALO), DEFAULT_SIMULATION_SETTINGS.HASH_FUNCTION,
@@ -323,9 +87,11 @@ public class Simulation
 		final PrintStream stream = System.out;
 
 		stream.println("Testing network for protocol " + protocol);
-		final Semaphore semaphore = new Semaphore(simulationData.getMaxFailureRate());
-		semaphore.acquire(simulationData.getMaxFailureRate());
-		ExecutorService executorService = Executors.newFixedThreadPool(simulationData.getMaxFailureRate());
+		final Semaphore semaphore = new Semaphore(
+				simulationData.getMaxFailureRate() - simulationData.getMinFailureRate() + 1);
+		semaphore.acquire(simulationData.getMaxFailureRate() - simulationData.getMinFailureRate() + 1);
+		ExecutorService executorService = Executors
+				.newFixedThreadPool(simulationData.getMaxFailureRate() - simulationData.getMinFailureRate() + 1);
 
 		for (int i = simulationData.getMinFailureRate(); i <= simulationData.getMaxFailureRate(); i++)
 		{
@@ -373,7 +139,7 @@ public class Simulation
 						}
 						try
 						{
-							double failureRatio = testNetwork(stream, chord);
+							double failureRatio = testNetwork(stream, chord, probability);
 							resultMap.put(probability, failureRatio);
 							stream.printf("%f\t%f\n", probability, failureRatio);
 
@@ -392,47 +158,88 @@ public class Simulation
 			});
 		}
 
-		while (semaphore.availablePermits() < (simulationData.getMaxFailureRate()- simulationData.getMinFailureRate() + 1))
+		while (semaphore
+				.availablePermits() < (simulationData.getMaxFailureRate() - simulationData.getMinFailureRate() + 1))
 			;
 
 		return resultMap;
 	}
 
-	private double testNetwork(PrintStream stream, Chord chord)
+	private double testNetwork(PrintStream stream, Chord chord, double probability)
 	{
 		int failedLookups = 0;
 		int successfulLookups = 0;
 
-		if (chord instanceof RedsChord)
-		{
-			((RedsChord) chord).helps = 0;
-			((RedsChord) chord).helps2 = 0;
-		}
-
 		Random rand = new Random(System.currentTimeMillis());
-		int goodSize = chord.getGoodNodeList().size();
+		List<ChordNode> goodNodeList = chord.getGoodNodeList();
+		int goodSize = goodNodeList.size();
 		for (int i = 0; i < simulationData.getNumberOfLookups(); i++)
 		{
+			getSimulationData().getCustomProperties().put(SimulationData.KEYS.LOOKUP_NUMBER, i);
+
 			int source = rand.nextInt(goodSize);
 			int dest = rand.nextInt(goodSize);
 
-			ChordNode sourceNode = chord.getGoodNodeList().get(source);
-			ChordNode destNode = chord.getGoodNodeList().get(dest);
+			ChordNode sourceNode = goodNodeList.get(source);
+			ChordNode destNode = goodNodeList.get(dest);
 
 			ChordNode foundSuccessor = sourceNode.locate(destNode.getNodeKey());
-			if (foundSuccessor.getNodeId().equals(destNode.getNodeId()))
+			if (ChordNode.validateResult(foundSuccessor, destNode.getNodeKey()))
 				successfulLookups++;
 			else
 				failedLookups++;
+
+			applyChurn(chord, probability, rand);
 		}
 
 		double failureRatio = (double) failedLookups / (successfulLookups + failedLookups);
-//		if (chord instanceof RedsChord)
-//		{
-//			System.out.println("Helps = " + ((RedsChord) chord).helps);
-//			System.out.println("Helps2 = " + ((RedsChord) chord).helps2);
-//		}
+		// if (chord instanceof RedsChord)
+		// {
+		// System.out.println("Helps = " + ((RedsChord) chord).helps);
+		// System.out.println("Helps2 = " + ((RedsChord) chord).helps2);
+		// }
+
 		return failureRatio;
+	}
+
+	private void applyChurn(Chord chord, double probability, Random rand)
+	{
+		List<ChordNode> goodNodeList = chord.getGoodNodeList();
+		double churnProbability = 0.25 / (250 * (goodNodeList.size() / chord.getNumberOfNodes()));
+
+		boolean update = false;
+		if (rand.nextDouble() < churnProbability)
+		{
+			int leavingNode = rand.nextInt(chord.getNumberOfNodes());
+			chord.getNode(leavingNode).leave();
+			chord.deleteNode(leavingNode);
+
+			update = true;
+		}
+		if (rand.nextDouble() < churnProbability)
+		{
+			try
+			{
+				ChordNode createNode;
+				URL url = new URL("http", "10.0." + rand.nextInt(255) + "." + rand.nextInt(255), 9000, "");
+				if (rand.nextDouble() < probability)
+					createNode = chord.createMaliciousNode(url.toString());
+				else
+					createNode = chord.createNode(url.toString());
+
+				createNode.join(chord.getNode(0));
+			}
+			catch (MalformedURLException | ChordException e)
+			{
+				e.printStackTrace();
+			}
+
+			update = true;
+		}
+		if (update)
+		{
+			stabalizeNetwork(null, chord);
+		}
 	}
 
 	public Chord setupNetwork(double maliciousNodeProbability, ChordProtocol protocol)
@@ -476,7 +283,7 @@ public class Simulation
 			}
 			catch (ChordException e)
 			{
-//				e.printStackTrace();
+				// e.printStackTrace();
 			}
 		}
 		out.println(simulationData.getNumberOfNodes() + " nodes are created.");
@@ -487,7 +294,7 @@ public class Simulation
 			out.println(node);
 		}
 
-		for (int i = 1; i < simulationData.getNumberOfNodes(); i++)
+		for (int i = 1; i < chord.getNumberOfNodes(); i++)
 		{
 			ChordNode node = chord.getNode(i);
 			node.join(chord.getNode(0));
@@ -503,22 +310,7 @@ public class Simulation
 			}
 		}
 
-		for (int j1 = 0; j1 < 10; j1++)
-			for (int i = 0; i < simulationData.getNumberOfNodes(); i++)
-			{
-				ChordNode node = chord.getNode(i);
-				node.stabilize();
-			}
-		out.println("Chord ring is established.");
-
-		out.println("Successor lists are fixed.");
-
-		for (int i = 0; i < simulationData.getNumberOfNodes(); i++)
-		{
-			ChordNode node = chord.getNode(i);
-			node.fixFingers();
-		}
-		out.println("Finger Tables are fixed.");
+		stabalizeNetwork(out, chord);
 
 		for (int i = 0; i < simulationData.getNumberOfNodes(); i++)
 		{
@@ -526,16 +318,6 @@ public class Simulation
 			node.printFingerTable(out);
 		}
 
-		if (protocol == ChordProtocol.REDS)
-		{
-			for (int i = 0; i < simulationData.getNumberOfNodes(); i++)
-			{
-				RedsChordNode node = (RedsChordNode) chord.getNode(i);
-				node.initializeScoreMap();
-				node.fixSharedKnuckles();
-			}
-			out.println("Shared Knuckle maps are fixed.");
-		}
 		// long end = System.currentTimeMillis();
 		//
 		// int interval = (int) (end - start);
@@ -544,24 +326,96 @@ public class Simulation
 		// System.out.printf("Elapsed Time : %d.%d\n", interval / 1000, interval
 		// % 1000);
 
+		out.close();
 		return chord;
+	}
+
+	private void stabalizeNetwork(PrintStream out, Chord chord)
+	{
+
+		for (int i = 0; i < chord.getNumberOfNodes(); i++)
+		{
+			ChordNode node = chord.getNode(i);
+
+			if (node.getPredecessor() == null)
+				node.stabilize();
+		}
+
+		for (int j1 = 0; j1 < 10; j1++)
+			for (int i = 0; i < chord.getNumberOfNodes(); i++)
+			{
+				ChordNode node = chord.getNode(i);
+				node.stabilize();
+			}
+		if (out != null)
+			out.println("Chord ring is established.");
+
+		for (int j1 = 0; j1 < 10; j1++)
+			for (int i = 0; i < chord.getNumberOfNodes(); i++)
+			{
+				ChordNode node = chord.getNode(i);
+				node.fixSuccessorList();
+			}
+		for (int j1 = 0; j1 < 10; j1++)
+			for (int i = 0; i < chord.getNumberOfNodes(); i++)
+			{
+				ChordNode node = chord.getNode(i);
+				node.stabilize();
+			}
+
+//		for (int i = 0; i < chord.getNumberOfNodes(); i++)
+//		{
+//			ChordNode node = chord.getNode(i);
+//			node.validateSuccessorList();
+//			if (node.getPredecessor() == null)
+//				throw new IllegalStateException("Predecessor is null.");
+//		}
+//		if (out != null)
+//			out.println("Successor lists are fixed.");
+
+		for (int i = 0; i < chord.getNumberOfNodes(); i++)
+		{
+			ChordNode node = chord.getNode(i);
+			node.fixFingers();
+		}
+		if (out != null)
+			out.println("Finger Tables are fixed.");
+
+		if (chord.getProtocol() == ChordProtocol.REDS)
+		{
+			for (int i = 0; i < chord.getNumberOfNodes(); i++)
+			{
+				RedsChordNode node = (RedsChordNode) chord.getNode(i);
+				node.initializeScoreMap();
+				node.fixSharedKnuckles();
+			}
+			if (out != null)
+				out.println("Shared Knuckle maps are fixed.");
+		}
+
 	}
 
 	private Chord createChord(ChordProtocol protocol)
 	{
+		Chord chord = null;
 		switch (protocol)
 		{
 		case Chord:
-			return new Chord(0);
+			chord = new Chord(0);
+			break;
 		case HALO:
-			return new HaloChord(0, simulationData.getHaloRedundancy());
+			chord = new HaloChord(0, simulationData.getHaloRedundancy());
+			break;
 		case REDS:
-			return new RedsChord(0, simulationData.getHaloRedundancy(), simulationData.getBucketSize(),
+			chord = new RedsChord(0, simulationData.getHaloRedundancy(), simulationData.getBucketSize(),
 					simulationData.getRedsReputationTreeDepth(), simulationData.getRedsMinObservations(),
 					simulationData.getScoringAlgorithm());
+			break;
 		default:
 			return null;
 		}
+		chord.setSimulationData(getSimulationData());
+		return chord;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -616,7 +470,7 @@ public class Simulation
 				x.addAll(resultMap.keySet());
 				Collections.sort(x);
 
-				stream.print(resultMaps.get(resultMap));
+				stream.println("\n" + resultMaps.get(resultMap));
 				try (PrintStream matlabFile = new PrintStream(resultMaps.get(resultMap) + ".csv"))
 				{
 					for (Double maliciousNodeProbability : x)
@@ -654,47 +508,6 @@ public class Simulation
 
 	}
 
-	// public boolean isNetworkRingDrawn()
-	// {
-	// return data.isNetworkRingDrawn();
-	// }
-	//
-	// public void setNetworkRingDrawn(boolean isNetworkRingDrawn)
-	// {
-	// this.data.setNetworkRingDrawn(isNetworkRingDrawn);
-	// }
-	//
-	// public boolean isResultDrawn()
-	// {
-	// return data.isResultDrawn();
-	// }
-	//
-	// public void setResultDrawn(boolean isResultDrawn)
-	// {
-	// this.data.setResultDrawn(isResultDrawn);
-	// }
-	//
-	// public boolean isResultSaved()
-	// {
-	// return data.isResultSaved();
-	// }
-	//
-	// public void setResultSaved(boolean isResultSaved)
-	// {
-	// this.data.setResultSaved(isResultSaved);
-	// }
-	//
-	// public EnumSet<ChordProtocol> getRunningSimulations()
-	// {
-	// return data.getRunningSimulations();
-	// }
-	//
-	// public void setRunningSimulations(EnumSet<ChordProtocol>
-	// runningSimulations)
-	// {
-	// this.data.setRunningSimulations(runningSimulations);
-	// }
-	//
 	public int getProgress()
 	{
 		return progress;

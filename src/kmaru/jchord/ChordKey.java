@@ -115,6 +115,7 @@ public class ChordKey implements Comparable<ChordKey>
 		return new ChordKey(newKey);
 	}
 
+	@Override
 	public int compareTo(ChordKey obj)
 	{
 		ChordKey targetKey = (ChordKey) obj;
@@ -161,6 +162,7 @@ public class ChordKey implements Comparable<ChordKey>
 
 	}
 
+	@Override
 	public String toString()
 	{
 		StringBuilder sb = new StringBuilder();

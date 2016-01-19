@@ -2,9 +2,9 @@ package kmaru.jchord.test;
 
 import java.util.BitSet;
 
+import org.junit.Assert;
 import org.junit.Test;
 
-import org.junit.Assert;
 import kmaru.jchord.ChordKey;
 import kmaru.jchord.Hash;
 

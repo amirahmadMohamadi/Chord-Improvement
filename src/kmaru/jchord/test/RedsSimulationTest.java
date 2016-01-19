@@ -3,7 +3,7 @@ package kmaru.jchord.test;
 import org.junit.Before;
 
 import kmaru.jchord.simulation.Simulation;
-import kmaru.jchord.simulation.Simulation.SimulationData;
+import kmaru.jchord.simulation.SimulationData;
 
 public class RedsSimulationTest
 {
