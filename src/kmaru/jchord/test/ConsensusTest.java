@@ -25,7 +25,7 @@ public class ConsensusTest
 	@Before
 	public void berforeMethod() throws Exception
 	{
-		SimulationData simulationData = new SimulationData(Simulation.DEFAULT_SIMULATION_DATA);
+		SimulationData simulationData = new SimulationData(SimulationData.DEFAULT_SIMULATION_DATA);
 		simulationData.setNumberOfNodes(100);
 		simulationData.setBucketSize(1);
 		simulationData.setRedsMinObservations(10);

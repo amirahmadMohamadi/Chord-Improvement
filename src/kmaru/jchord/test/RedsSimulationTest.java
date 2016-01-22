@@ -2,7 +2,6 @@ package kmaru.jchord.test;
 
 import org.junit.Before;
 
-import kmaru.jchord.simulation.Simulation;
 import kmaru.jchord.simulation.SimulationData;
 
 public class RedsSimulationTest
@@ -12,7 +11,7 @@ public class RedsSimulationTest
 	@Before
 	public void beforeMethod()
 	{
-		simulationData = new SimulationData(Simulation.DEFAULT_SIMULATION_DATA);
+		simulationData = new SimulationData(SimulationData.DEFAULT_SIMULATION_DATA);
 		
 		simulationData.setRepeatingTestsNumber(1);
 		simulationData.setMinFailureRate(20);

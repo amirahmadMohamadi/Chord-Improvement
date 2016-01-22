@@ -14,6 +14,7 @@ public class ChordNode
 	protected ChordNode			predecessor;
 	protected List<ChordNode>	successorList;
 	protected FingerTable		fingerTable;
+	List<ChordNode>				fingers;
 
 	private int numberOfLocateOperations;
 
@@ -217,6 +218,11 @@ public class ChordNode
 			ChordKey key = finger.getStart();
 			finger.setNode(findSuccessor(key));
 		}
+		
+		Set<ChordNode> fingerSet = new HashSet<>();
+		for (int j = 0; j < Hash.KEY_LENGTH; j++)
+			fingerSet.add(getFingerTable().getFinger(j).getNode());
+		fingers = new ArrayList<>(fingerSet);
 	}
 
 	public void fixSuccessorList()
@@ -231,7 +237,8 @@ public class ChordNode
 
 		if (chordNode != null)
 		{
-			successorList.subList(successorList.indexOf(chordNode) + 1, successorList.size()).clear();;
+			successorList.subList(successorList.indexOf(chordNode) + 1, successorList.size()).clear();
+			;
 			successorList.add(chordNode.getSuccessor());
 			successorList.addAll(chordNode.getSuccessor().successorList);
 			while (successorList.size() > SUCCESSOR_LIST_SIZE)
@@ -244,7 +251,7 @@ public class ChordNode
 	{
 		if (successorList.get(0).getPredecessor().equals(this) == false)
 			throw new IllegalArgumentException("Successor is incorrect!");
-			
+
 		for (int i = 0; i < successorList.size() - 1; i++)
 		{
 			ChordNode chordNode = successorList.get(i);
@@ -349,15 +356,16 @@ public class ChordNode
 
 	public ChordNode getFingerNode(int i)
 	{
-		Set<ChordNode> fingerSet = new HashSet<>();
-		for (int j = 0; j < Hash.KEY_LENGTH; j++)
-			fingerSet.add(getFingerTable().getFinger(j).getNode());
-		List<ChordNode> fingerList = new ArrayList<>(fingerSet);
-		if (i < fingerList.size())
-			return fingerList.get(i);
-		return fingerList.get(0);
+		if (i < fingers.size())
+			return fingers.get(i);
+		return fingers.get(0);
 	}
 
+	public List<ChordNode> getFingerList()
+	{
+		return this.fingers;
+	}
+	
 	public static boolean validateResult(ChordNode resultNode, ChordKey key)
 	{
 		if (resultNode.getPredecessor() == null)

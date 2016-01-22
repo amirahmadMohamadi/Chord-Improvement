@@ -3,7 +3,7 @@ package kmaru.jchord.simulation;
 import java.util.EnumSet;
 import java.util.Properties;
 
-import kmaru.jchord.reds.ScoringAlgorithm;
+import kmaru.jchord.reds.SharedReputationAlgorithm;
 
 public class SimulationData
 {
@@ -22,9 +22,18 @@ public class SimulationData
 	private int						bucketSize;
 	private int						redsMinObservations;
 	private int						redsReputationTreeDepth;
-	private ScoringAlgorithm		scoringAlgorithm;
+	private boolean					isChurnEnabled;
+	private SharedReputationAlgorithm		scoringAlgorithm;
 
 	private Properties customParameters;
+
+	public static final SimulationData DEFAULT_SIMULATION_DATA = new SimulationData(true, true, true,
+			EnumSet.of(ChordProtocol.REDS, ChordProtocol.HALO), DEFAULT_SIMULATION_SETTINGS.HASH_FUNCTION,
+			DEFAULT_SIMULATION_SETTINGS.KEY_LENGTH, DEFAULT_SIMULATION_SETTINGS.NUM_OF_NODES,
+			DEFAULT_SIMULATION_SETTINGS.NUM_OF_LOOKUPS, DEFAULT_SIMULATION_SETTINGS.MAX_MALICIOUS_PROBABILITY,
+			DEFAULT_SIMULATION_SETTINGS.NUM_OF_REPEATING_TESTS, DEFAULT_SIMULATION_SETTINGS.NUM_OF_HALO_REDUNDANCY,
+			DEFAULT_SIMULATION_SETTINGS.NUM_OF_BUCKET_SIZE, DEFAULT_SIMULATION_SETTINGS.REDS_MINIMUM_OBSERVATIONS,
+			DEFAULT_SIMULATION_SETTINGS.REDS_REPUTATION_TREE_DEPTH, SharedReputationAlgorithm.DropOff);
 
 	public static class DEFAULT_SIMULATION_SETTINGS
 	{
@@ -50,7 +59,7 @@ public class SimulationData
 		this.hashFunction = DEFAULT_SIMULATION_SETTINGS.HASH_FUNCTION;
 		this.keyLength = DEFAULT_SIMULATION_SETTINGS.KEY_LENGTH;
 		this.runningSimulations = EnumSet.noneOf(ChordProtocol.class);
-		scoringAlgorithm = ScoringAlgorithm.DropOff;
+		scoringAlgorithm = SharedReputationAlgorithm.DropOff;
 		this.minFailureRate = 0;
 		this.customParameters = new Properties();
 	}
@@ -68,7 +77,7 @@ public class SimulationData
 	public SimulationData(boolean isNetworkRingDrawn, boolean isResultDrawn, boolean isResultSaved,
 			EnumSet<ChordProtocol> runningSimulations, String hashFunction, int keyLength, int numberOfNodes,
 			int numberOfLookups, int maxFailureRate, int repeatingTestsNumber, int haloRedundancy, int bucketSize,
-			int redsMinObservations, int redsReputationTreeDepth, ScoringAlgorithm scoringAlgorithm)
+			int redsMinObservations, int redsReputationTreeDepth, SharedReputationAlgorithm scoringAlgorithm)
 	{
 		this.isNetworkRingDrawn = isNetworkRingDrawn;
 		this.isResultDrawn = isResultDrawn;
@@ -240,12 +249,12 @@ public class SimulationData
 		this.redsReputationTreeDepth = redsReputationTreeDepth;
 	}
 
-	public ScoringAlgorithm getScoringAlgorithm()
+	public SharedReputationAlgorithm getSharedReputationAlgorithm()
 	{
 		return this.scoringAlgorithm;
 	}
 
-	public void setScoringAlgorithm(ScoringAlgorithm scoringAlgorithm)
+	public void setScoringAlgorithm(SharedReputationAlgorithm scoringAlgorithm)
 	{
 		this.scoringAlgorithm = scoringAlgorithm;
 	}
@@ -253,5 +262,15 @@ public class SimulationData
 	public Properties getCustomProperties()
 	{
 		return this.customParameters;
+	}
+
+	public boolean isChurnEnabled()
+	{
+		return isChurnEnabled;
+	}
+	
+	public void setChurnEnabled(boolean churn)
+	{
+		this.isChurnEnabled = churn;
 	}
 }

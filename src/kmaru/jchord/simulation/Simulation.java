@@ -9,14 +9,18 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
 
@@ -28,37 +32,64 @@ import kmaru.jchord.Chord;
 import kmaru.jchord.ChordException;
 import kmaru.jchord.ChordNode;
 import kmaru.jchord.Hash;
+import kmaru.jchord.charts.ConsensusPlot;
+import kmaru.jchord.charts.FailureRatioPlot;
 import kmaru.jchord.charts.NetworkDiagram;
-import kmaru.jchord.charts.Plot;
 import kmaru.jchord.halo.HaloChord;
 import kmaru.jchord.reds.RedsChord;
 import kmaru.jchord.reds.RedsChordNode;
-import kmaru.jchord.reds.ScoringAlgorithm;
-import kmaru.jchord.simulation.SimulationData.DEFAULT_SIMULATION_SETTINGS;
+import kmaru.jchord.reds.SharedReputationAlgorithm;
 
 public class Simulation
 {
 
-	public static final SimulationData DEFAULT_SIMULATION_DATA = new SimulationData(true, true, true,
-			EnumSet.of(ChordProtocol.REDS, ChordProtocol.HALO), DEFAULT_SIMULATION_SETTINGS.HASH_FUNCTION,
-			DEFAULT_SIMULATION_SETTINGS.KEY_LENGTH, DEFAULT_SIMULATION_SETTINGS.NUM_OF_NODES,
-			DEFAULT_SIMULATION_SETTINGS.NUM_OF_LOOKUPS, DEFAULT_SIMULATION_SETTINGS.MAX_MALICIOUS_PROBABILITY,
-			DEFAULT_SIMULATION_SETTINGS.NUM_OF_REPEATING_TESTS, DEFAULT_SIMULATION_SETTINGS.NUM_OF_HALO_REDUNDANCY,
-			DEFAULT_SIMULATION_SETTINGS.NUM_OF_BUCKET_SIZE, DEFAULT_SIMULATION_SETTINGS.REDS_MINIMUM_OBSERVATIONS,
-			DEFAULT_SIMULATION_SETTINGS.REDS_REPUTATION_TREE_DEPTH, ScoringAlgorithm.DropOff);
+	private Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+
+	private volatile int	progress	= 0;
+	private SimulationData	simulationData;
 
 	public Simulation()
 	{
-		this.simulationData = DEFAULT_SIMULATION_DATA;
+		this(SimulationData.DEFAULT_SIMULATION_DATA);
 	}
 
 	public Simulation(SimulationData simulationData)
 	{
 		this.simulationData = simulationData;
+		ConsoleHandler handler = null;
+		for (Handler handler2 : logger.getHandlers())
+		{
+			if (handler2 instanceof ConsoleHandler)
+				handler = (ConsoleHandler) handler2;
+		}
+		if (handler != null)
+			logger.removeHandler(handler);
 	}
 
-	private volatile int	progress	= 0;
-	private SimulationData	simulationData;
+	public int getProgress()
+	{
+		return progress;
+	}
+
+	public void setProgress(int progress)
+	{
+		this.progress = progress;
+	}
+
+	public SimulationData getSimulationData()
+	{
+		return simulationData;
+	}
+
+	public void setSimulationData(SimulationData simulationData)
+	{
+		this.simulationData = simulationData;
+	}
+
+	public Logger getLogger()
+	{
+		return logger;
+	}
 
 	public void simulate() throws Exception
 	{
@@ -70,9 +101,12 @@ public class Simulation
 		if (simulationData.getRunningSimulations().contains(ChordProtocol.HALO))
 			map.put(runTest(ChordProtocol.HALO), "halo " + simulationData.getHaloRedundancy());
 		if (simulationData.getRunningSimulations().contains(ChordProtocol.REDS))
-		{
-			map.put(runTest(ChordProtocol.REDS), "reds");
-		}
+			map.put(runTest(ChordProtocol.REDS),
+					"reds (collaborative"
+							+ (simulationData.getSharedReputationAlgorithm() == SharedReputationAlgorithm.Off ? ""
+									: ("-" + simulationData.getSharedReputationAlgorithm()))
+							+ ")");
+
 		if (simulationData.isResultDrawn())
 			displayResult(map);
 		if (simulationData.isResultSaved())
@@ -83,10 +117,7 @@ public class Simulation
 	{
 		final MultiMap<Double, Double> resultMap = new MultiValueMap<>();
 
-		// PrintStream stream = new PrintStream("result.txt");
-		final PrintStream stream = System.out;
-
-		stream.println("Testing network for protocol " + protocol);
+		getLogger().log(Level.INFO, "Testing network for protocol " + protocol);
 		final Semaphore semaphore = new Semaphore(
 				simulationData.getMaxFailureRate() - simulationData.getMinFailureRate() + 1);
 		semaphore.acquire(simulationData.getMaxFailureRate() - simulationData.getMinFailureRate() + 1);
@@ -106,7 +137,7 @@ public class Simulation
 					for (int j = 0; j < simulationData.getRepeatingTestsNumber(); j++)
 					{
 						Chord chord = null;
-						stream.println("maliciuos node probability is " + probability);
+						getLogger().log(Level.INFO, "maliciuos node probability is " + probability);
 						try
 						{
 							chord = setupNetwork(probability, protocol);
@@ -139,20 +170,27 @@ public class Simulation
 						}
 						try
 						{
-							double failureRatio = testNetwork(stream, chord, probability);
-							resultMap.put(probability, failureRatio);
-							stream.printf("%f\t%f\n", probability, failureRatio);
+							double failureRatio = testNetwork(chord, probability);
+							if (simulationData.getRunningSimulations().contains(ChordProtocol.REDS)
+									&& simulationData
+											.getSharedReputationAlgorithm() == SharedReputationAlgorithm.Consensus
+									&& (probability == (simulationData.getMaxFailureRate()) * 0.01 && j == 0))
+							{
+								saveConsensusInformation(chord);
+							}
 
-							stream.println("test ended successfuly.");
+							resultMap.put(probability, failureRatio);
+							getLogger().log(Level.INFO, String.format("%f\t%f\n", probability, failureRatio));
+							getLogger().log(Level.INFO, "test ended successfuly.");
 						}
 						catch (Exception e)
 						{
-							stream.println("test failed.");
+							getLogger().log(Level.INFO, "test failed.");
 							e.printStackTrace();
 						}
 						progress++;
 					}
-					stream.println("semaphore released");
+					getLogger().log(Level.INFO, "semaphore released");
 					semaphore.release();
 				}
 			});
@@ -165,7 +203,7 @@ public class Simulation
 		return resultMap;
 	}
 
-	private double testNetwork(PrintStream stream, Chord chord, double probability)
+	private double testNetwork(Chord chord, double probability)
 	{
 		int failedLookups = 0;
 		int successfulLookups = 0;
@@ -176,7 +214,7 @@ public class Simulation
 		for (int i = 0; i < simulationData.getNumberOfLookups(); i++)
 		{
 			getSimulationData().getCustomProperties().put(SimulationData.KEYS.LOOKUP_NUMBER, i);
-
+			getLogger().log(Level.INFO, i + " ");
 			int source = rand.nextInt(goodSize);
 			int dest = rand.nextInt(goodSize);
 
@@ -189,15 +227,11 @@ public class Simulation
 			else
 				failedLookups++;
 
-			applyChurn(chord, probability, rand);
+			if (getSimulationData().isChurnEnabled())
+				applyChurn(chord, probability, rand);
 		}
 
 		double failureRatio = (double) failedLookups / (successfulLookups + failedLookups);
-		// if (chord instanceof RedsChord)
-		// {
-		// System.out.println("Helps = " + ((RedsChord) chord).helps);
-		// System.out.println("Helps2 = " + ((RedsChord) chord).helps2);
-		// }
 
 		return failureRatio;
 	}
@@ -205,7 +239,8 @@ public class Simulation
 	private void applyChurn(Chord chord, double probability, Random rand)
 	{
 		List<ChordNode> goodNodeList = chord.getGoodNodeList();
-		double churnProbability = 0.25 / (250 * (goodNodeList.size() / chord.getNumberOfNodes()));
+		double churnProbability = 0.25
+				/ ((chord.getNumberOfNodes() / 4) * (goodNodeList.size() / chord.getNumberOfNodes()));
 
 		boolean update = false;
 		if (rand.nextDouble() < churnProbability)
@@ -218,21 +253,23 @@ public class Simulation
 		}
 		if (rand.nextDouble() < churnProbability)
 		{
-			try
-			{
-				ChordNode createNode;
-				URL url = new URL("http", "10.0." + rand.nextInt(255) + "." + rand.nextInt(255), 9000, "");
-				if (rand.nextDouble() < probability)
-					createNode = chord.createMaliciousNode(url.toString());
-				else
-					createNode = chord.createNode(url.toString());
+			boolean added = false;
+			while (added == false)
+				try
+				{
+					ChordNode createNode;
+					URL url = new URL("http", "10.0." + rand.nextInt(255) + "." + rand.nextInt(255), 9000, "");
+					if (rand.nextDouble() < probability)
+						createNode = chord.createMaliciousNode(url.toString());
+					else
+						createNode = chord.createNode(url.toString());
 
-				createNode.join(chord.getNode(0));
-			}
-			catch (MalformedURLException | ChordException e)
-			{
-				e.printStackTrace();
-			}
+					createNode.join(chord.getNode(0));
+					added = true;
+				}
+				catch (MalformedURLException | ChordException e)
+				{
+				}
 
 			update = true;
 		}
@@ -310,7 +347,7 @@ public class Simulation
 			}
 		}
 
-		stabalizeNetwork(out, chord);
+		stabalizeNetwork(getLogger(), chord);
 
 		for (int i = 0; i < simulationData.getNumberOfNodes(); i++)
 		{
@@ -330,7 +367,7 @@ public class Simulation
 		return chord;
 	}
 
-	private void stabalizeNetwork(PrintStream out, Chord chord)
+	private void stabalizeNetwork(Logger logger, Chord chord)
 	{
 
 		for (int i = 0; i < chord.getNumberOfNodes(); i++)
@@ -347,8 +384,8 @@ public class Simulation
 				ChordNode node = chord.getNode(i);
 				node.stabilize();
 			}
-		if (out != null)
-			out.println("Chord ring is established.");
+		if (logger != null)
+			logger.log(Level.INFO, "Chord ring is established.");
 
 		for (int j1 = 0; j1 < 10; j1++)
 			for (int i = 0; i < chord.getNumberOfNodes(); i++)
@@ -363,23 +400,23 @@ public class Simulation
 				node.stabilize();
 			}
 
-//		for (int i = 0; i < chord.getNumberOfNodes(); i++)
-//		{
-//			ChordNode node = chord.getNode(i);
-//			node.validateSuccessorList();
-//			if (node.getPredecessor() == null)
-//				throw new IllegalStateException("Predecessor is null.");
-//		}
-//		if (out != null)
-//			out.println("Successor lists are fixed.");
+		// for (int i = 0; i < chord.getNumberOfNodes(); i++)
+		// {
+		// ChordNode node = chord.getNode(i);
+		// node.validateSuccessorList();
+		// if (node.getPredecessor() == null)
+		// throw new IllegalStateException("Predecessor is null.");
+		// }
+		// if (out != null)
+		// out.println("Successor lists are fixed.");
 
 		for (int i = 0; i < chord.getNumberOfNodes(); i++)
 		{
 			ChordNode node = chord.getNode(i);
 			node.fixFingers();
 		}
-		if (out != null)
-			out.println("Finger Tables are fixed.");
+		if (logger != null)
+			logger.log(Level.INFO, "Finger Tables are fixed.");
 
 		if (chord.getProtocol() == ChordProtocol.REDS)
 		{
@@ -389,8 +426,8 @@ public class Simulation
 				node.initializeScoreMap();
 				node.fixSharedKnuckles();
 			}
-			if (out != null)
-				out.println("Shared Knuckle maps are fixed.");
+			if (logger != null)
+				logger.log(Level.INFO, "Shared Knuckle maps are fixed.");
 		}
 
 	}
@@ -409,7 +446,7 @@ public class Simulation
 		case REDS:
 			chord = new RedsChord(0, simulationData.getHaloRedundancy(), simulationData.getBucketSize(),
 					simulationData.getRedsReputationTreeDepth(), simulationData.getRedsMinObservations(),
-					simulationData.getScoringAlgorithm());
+					simulationData.getSharedReputationAlgorithm());
 			break;
 		default:
 			return null;
@@ -421,7 +458,7 @@ public class Simulation
 	@SuppressWarnings("unchecked")
 	private static void displayResult(Map<MultiMap<Double, Double>, String> resultMaps)
 	{
-		Plot plot = new Plot();
+		FailureRatioPlot plot = new FailureRatioPlot();
 		for (MultiMap<Double, Double> resultMap : resultMaps.keySet())
 		{
 			List<Double> meanList = new ArrayList<>();
@@ -508,24 +545,37 @@ public class Simulation
 
 	}
 
-	public int getProgress()
+	protected void saveConsensusInformation(Chord chord)
 	{
-		return progress;
-	}
+		ConsensusPlot plot = new ConsensusPlot();
+		@SuppressWarnings("unchecked")
+		Map<RedsChordNode, List<Double>> consensusMap = (Map<RedsChordNode, List<Double>>) chord.getSimulationData()
+				.getCustomProperties().get("Consensus Data");
 
-	public void setProgress(int progress)
-	{
-		this.progress = progress;
-	}
-
-	public SimulationData getSimulationData()
-	{
-		return simulationData;
-	}
-
-	public void setSimulationData(SimulationData simulationData)
-	{
-		this.simulationData = simulationData;
+		int j = 0;
+		try (PrintStream stream = new PrintStream("consensus.csv"))
+		{
+			for (Entry<RedsChordNode, List<Double>> entry : consensusMap.entrySet())
+			{
+				stream.print(entry.getKey().getNodeId() + ", ");
+				double[][] scores = new double[2][entry.getValue().size()];
+				for (int i = 0; i < entry.getValue().size(); i++)
+				{
+					scores[0][i] = i;
+					scores[1][i] = entry.getValue().get(i);
+					stream.print(scores[1][i] + ", ");
+				}
+				stream.println();
+				j++;
+				if (j < 10)
+					plot.addDataset(scores, entry.getKey().getNodeId());
+			}
+		}
+		catch (FileNotFoundException e)
+		{
+			e.printStackTrace();
+		}
+		plot.draw();
 	}
 
 }

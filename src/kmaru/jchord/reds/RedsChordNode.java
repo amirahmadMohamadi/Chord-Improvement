@@ -2,6 +2,8 @@ package kmaru.jchord.reds;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +33,6 @@ public class RedsChordNode extends HaloChordNode
 		super(nodeId, redsChord);
 		this.sharedKnucklesMap = new MultiValueMap<>();
 
-		initializeScoreMap();
 	}
 
 	public void initializeScoreMap()
@@ -39,7 +40,7 @@ public class RedsChordNode extends HaloChordNode
 		this.scoreMap = new HashMap<>();
 
 		Map<Integer, ReputationTree> map = null;
-		for (int i = 0; i < sharedKnuckleListSize; i++)
+		for (int i = 0; i < getFingerList().size(); i++)
 		{
 			map = scoreMap.get(getFingerNode(i).getNodeKey());
 			if (map == null)
@@ -75,14 +76,12 @@ public class RedsChordNode extends HaloChordNode
 	public ChordNode locate(ChordKey key)
 	{
 		List<ChordNode> helpingPeers = new ArrayList<>();
-		List<Integer> helpingPeerNumbers = new ArrayList<>();
-		DefaultKeyValue<ChordNode, Integer> bestHelpingPeer;
+		DefaultKeyValue<ChordNode, Double> bestHelpingPeer;
 		for (int i = 0; i < getChord().getHaloRedundancy(); i++)
 		{
-			bestHelpingPeer = calculateBestHelpingPeer(key.createEndKey(Hash.KEY_LENGTH - 1 - i), getFingerNode(i),
-					getChord().getScoringAlgorithm());
+			bestHelpingPeer = calculateBestHelpingPeer(key.createEndKey(Hash.KEY_LENGTH - 1 - i),
+					getChord().getScoringAlgorithm(), helpingPeers);
 			helpingPeers.add(bestHelpingPeer.getKey());
-			helpingPeerNumbers.add(bestHelpingPeer.getValue());
 		}
 
 		List<ChordNode> results = HALocate(this, key, getChord().getHaloRedundancy(), helpingPeers);
@@ -91,7 +90,7 @@ public class RedsChordNode extends HaloChordNode
 		{
 			ChordNode chordNode = results.get(i);
 			if (scoreMap.get(getFingerNode(i).getNodeKey()) != null)
-				scoreMap.get(getFingerNode(i).getNodeKey()).get(helpingPeerNumbers.get(i)).addScore(key,
+				scoreMap.get(getFingerNode(i).getNodeKey()).get(0).addScore(key,
 						validateResult(chordNode, key) ? 1 : -1);
 		}
 
@@ -129,8 +128,8 @@ public class RedsChordNode extends HaloChordNode
 				throw new IllegalArgumentException();
 
 			// Collaborative Reputation
-			DefaultKeyValue<ChordNode, Integer> bestHelpingPeer = calculateBestHelpingPeer(key, node,
-					ScoringAlgorithm.Off);
+			DefaultKeyValue<ChordNode, Integer> bestHelpingPeer = calculateBestHelpingPeerWithoutSharedReputation(key,
+					node);
 			ChordNode chordLocate = ((RedsChordNode) bestHelpingPeer.getKey()).chordLocate(key);
 
 			if (scoreMap.get(node) != null)
@@ -140,39 +139,70 @@ public class RedsChordNode extends HaloChordNode
 		}
 	}
 
-	public DefaultKeyValue<ChordNode, Integer> calculateBestHelpingPeer(ChordKey key, ChordNode peer,
-			ScoringAlgorithm algorithm)
+	public DefaultKeyValue<ChordNode, Double> calculateBestHelpingPeer(ChordKey key, SharedReputationAlgorithm algorithm,
+			List<ChordNode> omittedNodes)
 	{
-		int bestHelpingPeer = 0;
-		switch (algorithm)
-		{
-		case Consensus:
-			bestHelpingPeer = calculateBestHelpingPeerConsensus(key, peer);
-			break;
-		case DropOff:
-			bestHelpingPeer = calculateBestHelpingPeerDropOff(key, peer);
-			break;
-		case Off:
-			bestHelpingPeer = calculateBestHelpingPeerWithoutSharedReputation(key, peer);
-			break;
-		}
+		List<DefaultKeyValue<ChordNode, Double>> fingersScoreMap = new ArrayList<>();
 
-		ChordNode node = peer;
-		for (int k = 0; k < bestHelpingPeer; k++)
+		for (int i = 0; i < getFingerList().size(); i++)
 		{
-			if (node.getPredecessor() == null)
+			ChordNode fingerNode = getFingerNode(i);
+			if (omittedNodes.contains(fingerNode))
+				continue;
+			switch (algorithm)
 			{
-				bestHelpingPeer = k;
+			case Consensus:
+				fingersScoreMap
+						.add(new DefaultKeyValue<>(fingerNode, calculateHelpingPeerConsensusScore(key, fingerNode)));
 				break;
+			case DropOff:
+				fingersScoreMap
+						.add(new DefaultKeyValue<>(fingerNode, calculateHelpingPeerDropOffScore(key, fingerNode)));
+				break;
+			case Off:
+				fingersScoreMap.add(new DefaultKeyValue<>(fingerNode,
+						calculateHelpingPeerWithoutSharedReputationScore(key, fingerNode)));
 			}
-			node = node.getPredecessor();
+
 		}
 
-		return new DefaultKeyValue<ChordNode, Integer>(node, bestHelpingPeer);
+		if (fingersScoreMap.isEmpty())
+		{
+			for (ChordNode chordNode : omittedNodes)
+			{
+				switch (algorithm)
+				{
+				case Consensus:
+					fingersScoreMap
+							.add(new DefaultKeyValue<>(chordNode, calculateHelpingPeerConsensusScore(key, chordNode)));
+					break;
+				case DropOff:
+					fingersScoreMap
+							.add(new DefaultKeyValue<>(chordNode, calculateHelpingPeerDropOffScore(key, chordNode)));
+					break;
+				case Off:
+					fingersScoreMap.add(new DefaultKeyValue<>(chordNode,
+							calculateHelpingPeerWithoutSharedReputationScore(key, chordNode)));
+				}
 
+			}
+		}
+		
+		Collections.sort(fingersScoreMap, new Comparator<DefaultKeyValue<ChordNode, Double>>()
+		{
+
+			@Override
+			public int compare(DefaultKeyValue<ChordNode, Double> o1, DefaultKeyValue<ChordNode, Double> o2)
+			{
+				return o1.getValue().compareTo(o2.getValue());
+			}
+		});
+
+		return fingersScoreMap.get(0);
 	}
 
-	private int calculateBestHelpingPeerWithoutSharedReputation(ChordKey key, ChordNode peer)
+	private DefaultKeyValue<ChordNode, Integer> calculateBestHelpingPeerWithoutSharedReputation(ChordKey key,
+			ChordNode peer)
 	{
 
 		int bestHelpingPeer = 0;
@@ -190,62 +220,70 @@ public class RedsChordNode extends HaloChordNode
 			}
 
 		}
-		return bestHelpingPeer;
+
+		ChordNode node = peer;
+		for (int k = 0; k < bestHelpingPeer; k++)
+		{
+			if (node.getPredecessor() == null)
+			{
+				bestHelpingPeer = k;
+				break;
+			}
+			node = node.getPredecessor();
+		}
+
+		return new DefaultKeyValue<ChordNode, Integer>(node, bestHelpingPeer);
+
+	}
+
+	private Double calculateHelpingPeerWithoutSharedReputationScore(ChordKey key, ChordNode peer)
+	{
+
+		if (scoreMap.get(peer.getNodeKey()) != null)
+		{
+			return scoreMap.get(peer.getNodeKey()).get(0).getScore(key);
+
+		}
+
+		return 0.5;
+
 	}
 
 	@SuppressWarnings("unchecked")
-	public int calculateBestHelpingPeerDropOff(ChordKey key, ChordNode peer)
+	public double calculateHelpingPeerDropOffScore(ChordKey key, ChordNode peer)
 	{
-		MultiMap<Integer, Double> scoringBin = new MultiValueMap<>();
-		int bestHelpingPeer = 0;
+		List<Double> scoringBin = new ArrayList<>();
 		if (scoreMap.get(peer.getNodeKey()) == null)
-			return bestHelpingPeer;
+			return 0.5;
 
 		Random random = new Random(System.currentTimeMillis());
 		if (sharedKnucklesMap.get(peer.getNodeKey()) != null)
 			for (RedsChordNode node : (Collection<RedsChordNode>) sharedKnucklesMap.get(peer.getNodeKey()))
 			{
-				for (int j = 0; j < getChord().bucketSize; j++)
+				double peerScore = scoreMap.get(peer.getNodeKey()).get(0).getScore(key);
+				Map<Integer, ReputationTree> map = node.scoreMap.get(peer.getNodeKey());
+				if (map != null)
 				{
-					double peerScore = scoreMap.get(peer.getNodeKey()).get(j).getScore(key);
-					Map<Integer, ReputationTree> map = node.scoreMap.get(peer.getNodeKey());
-					if (map != null)
-					{
-						double sharedKnucklePeerScore = map.get(j).getScore(key);
-						double w = 1 - Math.abs(peerScore - sharedKnucklePeerScore);
-						if (random.nextDouble() <= w)
-							scoringBin.put(j, sharedKnucklePeerScore);
-					}
+					double sharedKnucklePeerScore = map.get(0).getScore(key);
+					double w = 1 - Math.abs(peerScore - sharedKnucklePeerScore);
+					if (random.nextDouble() <= w)
+						scoringBin.add(sharedKnucklePeerScore);
 				}
 			}
 
-		for (int j = 0; j < getChord().bucketSize; j++)
-		{
-			scoringBin.put(j, scoreMap.get(peer.getNodeKey()).get(j).getScore(key));
-		}
-
-		double bestHelpingScore = -2;
+		scoringBin.add(scoreMap.get(peer.getNodeKey()).get(0).getScore(key));
 
 		DescriptiveStatistics stat;
-		for (int j = 0; j < getChord().bucketSize; j++)
-		{
-			stat = new DescriptiveStatistics();
-			for (Double score : (Collection<Double>) scoringBin.get(j))
-				stat.addValue(score);
-			if (stat.getPercentile(50) > bestHelpingScore)
-			{
-				bestHelpingScore = stat.getPercentile(50);
-				bestHelpingPeer = j;
-			}
-		}
-		System.out.println("best score = " + bestHelpingScore + " peer = " + bestHelpingPeer);
+		stat = new DescriptiveStatistics();
+		for (Double score : scoringBin)
+			stat.addValue(score);
+		double bestHelpingScore = stat.getPercentile(50);
 
-		return bestHelpingPeer;
-
+		return bestHelpingScore;
 	}
 
 	@SuppressWarnings("unchecked")
-	public int calculateBestHelpingPeerConsensus(ChordKey key, ChordNode peer)
+	public double calculateHelpingPeerConsensusScore(ChordKey key, ChordNode peer)
 	{
 		Map<RedsChordNode, List<Double>> consensusMap;
 		if (getChord().getSimulationData().getCustomProperties().get("Consensus Data") == null)
@@ -254,9 +292,8 @@ public class RedsChordNode extends HaloChordNode
 			consensusMap = (Map<RedsChordNode, List<Double>>) getChord().getSimulationData().getCustomProperties()
 					.get("Consensus Data");
 
-		int bestHelpingPeer = 0;
 		if (scoreMap.get(peer.getNodeKey()) == null || sharedKnucklesMap.get(peer.getNodeKey()) == null)
-			return bestHelpingPeer;
+			return 0.5;
 
 		SimpleGraph<RedsChordNode, ConsensusGraphEdge> graph = new SimpleGraph<>(ConsensusGraphEdge.class);
 
@@ -277,50 +314,30 @@ public class RedsChordNode extends HaloChordNode
 
 		double epsilon = 0.1;
 		double endLimit = 0.0001;
-		List<Double> scores = new ArrayList<>();
-		for (int k = 0; k < getChord().bucketSize; k++)
-		{
-			scores.add(scoreMap.get(peer.getNodeKey()).get(k).getScore(key));
-		}
 
-		boolean addData = true;
-		for (int j = 0; j < getChord().bucketSize; j++)
-		{
-			if (consensusMap.get(this) == null)
-				consensusMap.put(this, new ArrayList<Double>());
-			else
-				addData = false;
+		consensusMap.put(this, new ArrayList<Double>());
 
-			double diff = Double.POSITIVE_INFINITY;
-			double score = scores.get(j);
-			double newScore = score;
-			while (diff > endLimit)
+		double diff = Double.POSITIVE_INFINITY;
+		double score = scoreMap.get(peer.getNodeKey()).get(0).getScore(key);
+		double newScore = score;
+		while (diff > endLimit)
+		{
+			Map<Integer, ReputationTree> map;
+			for (ConsensusGraphEdge edge : graph.edgesOf(this))
 			{
-				Map<Integer, ReputationTree> map;
-				for (ConsensusGraphEdge edge : graph.edgesOf(this))
-				{
-					map = (edge.getSource().equals(this) ? (RedsChordNode) edge.getTarget()
-							: (RedsChordNode) edge.getSource()).scoreMap.get(peer.getNodeKey());
-					if (map != null)
-						newScore = newScore + epsilon * (map.get(j).getScore(key) - score);
-				}
-				diff = Math.abs(newScore - score);
-				score = newScore;
-
-				if (addData)
-					consensusMap.get(this).add(score);
+				map = (edge.getSource().equals(this) ? (RedsChordNode) edge.getTarget()
+						: (RedsChordNode) edge.getSource()).scoreMap.get(peer.getNodeKey());
+				if (map != null)
+					newScore = newScore + epsilon * (map.get(0).getScore(key) - score);
 			}
-			scores.set(j, score);
+			diff = Math.abs(newScore - score);
+			score = newScore;
+
+			consensusMap.get(this).add(score);
 		}
 
 		getChord().getSimulationData().getCustomProperties().put("Consensus Data", consensusMap);
-		for (int l = 0; l < scores.size(); l++)
-		{
-			if (scores.get(l) > scores.get(bestHelpingPeer))
-				bestHelpingPeer = l;
-
-		}
-		return bestHelpingPeer;
+		return score;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -340,6 +357,14 @@ public class RedsChordNode extends HaloChordNode
 					sharedKnucklesMap.put(finger.getNodeKey(), knuckleSearch);
 			}
 		}
+	}
+
+	@Override
+	public void fixFingers()
+	{
+		super.fixFingers();
+
+		initializeScoreMap();
 	}
 
 }

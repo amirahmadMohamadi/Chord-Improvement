@@ -15,10 +15,10 @@ public class RedsChord extends HaloChord
 	int							bucketSize;
 	private int					reputationTreeDepth;
 	private int					minimumObservations;
-	private ScoringAlgorithm	scoringAlgorithm;
+	private SharedReputationAlgorithm	scoringAlgorithm;
 
 	public RedsChord(double maliciousNodeProbability, int haloRedundancy, int bucketSize, int reputationTreDepth,
-			int minimumObservations, ScoringAlgorithm scoringAlgorithm)
+			int minimumObservations, SharedReputationAlgorithm scoringAlgorithm)
 	{
 		super(maliciousNodeProbability, haloRedundancy);
 		this.bucketSize = bucketSize;
@@ -76,7 +76,7 @@ public class RedsChord extends HaloChord
 		return minimumObservations;
 	}
 	
-	public ScoringAlgorithm getScoringAlgorithm()
+	public SharedReputationAlgorithm getScoringAlgorithm()
 	{
 		return scoringAlgorithm;
 	}
