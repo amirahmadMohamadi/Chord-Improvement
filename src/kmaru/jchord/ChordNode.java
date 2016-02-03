@@ -136,6 +136,19 @@ public class ChordNode
 		successorList.add(this);
 	}
 
+	public void dispose()
+	{
+		if (getSuccessorList() != null)
+		{
+			getSuccessorList().clear();
+			successorList = null;
+		}
+		this.predecessor = null;
+		this.fingers.clear();
+		this.fingerTable.fingers = null;
+			
+	}
+	
 	public void leave()
 	{
 		successorList.get(0).predecessorRemoved();
@@ -322,6 +335,11 @@ public class ChordNode
 		return successorList.get(0);
 	}
 
+	public List<ChordNode> getSuccessorList()
+	{
+		return successorList;
+	}
+	
 	public void setSuccessor(ChordNode successor)
 	{
 		this.successorList.clear();

@@ -10,7 +10,7 @@ import kmaru.jchord.ChordKey;
 
 public class ReputationTree
 {
-	FingerNode	root;
+	private FingerNode	root;
 	int			minimumObservations;
 	int			chunkSize;
 
@@ -153,6 +153,11 @@ public class ReputationTree
 
 	}
 
+	public FingerNode getRoot()
+	{
+		return root;
+	}
+
 	class FingerNode implements Comparable<FingerNode>
 	{
 		FingerNode					parent;
@@ -196,7 +201,7 @@ public class ReputationTree
 		public double getScore()
 		{
 			if (sentLookups < minimumObservations)
-				return 0.5;
+				return 0;
 			return (double) successfulLookups / sentLookups;
 		}
 

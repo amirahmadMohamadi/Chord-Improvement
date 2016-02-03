@@ -273,8 +273,7 @@ public class RedsChordNode extends HaloChordNode
 
 		scoringBin.add(scoreMap.get(peer.getNodeKey()).get(0).getScore(key));
 
-		DescriptiveStatistics stat;
-		stat = new DescriptiveStatistics();
+		DescriptiveStatistics stat = new DescriptiveStatistics();
 		for (Double score : scoringBin)
 			stat.addValue(score);
 		double bestHelpingScore = stat.getPercentile(50);
@@ -367,4 +366,14 @@ public class RedsChordNode extends HaloChordNode
 		initializeScoreMap();
 	}
 
+	@Override
+	public void dispose()
+	{
+		super.dispose();
+		
+		this.sharedKnucklesMap.clear();
+		this.scoreMap.clear();
+	}
+
+	
 }

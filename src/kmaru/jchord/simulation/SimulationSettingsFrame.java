@@ -5,7 +5,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Handler;
@@ -23,7 +22,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTable;
-import javax.swing.SwingUtilities;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
@@ -256,36 +254,44 @@ public class SimulationSettingsFrame extends JFrame
 			}
 		});
 		GroupLayout gl_redsPanel = new GroupLayout(redsPanel);
-		gl_redsPanel.setHorizontalGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_redsPanel.createSequentialGroup().addContainerGap()
-						.addGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING).addComponent(lblRedsBucketSize_1)
-								.addComponent(lblRedsBucketSize))
-				.addGap(30)
-				.addGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING, false).addComponent(bucketSizeField)
+		gl_redsPanel.setHorizontalGroup(
+			gl_redsPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_redsPanel.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING)
+						.addComponent(lblRedsBucketSize_1)
+						.addComponent(lblRedsBucketSize))
+					.addGap(30)
+					.addGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING, false)
+						.addComponent(bucketSizeField)
 						.addComponent(minObservationsField, GroupLayout.DEFAULT_SIZE, 134, Short.MAX_VALUE))
-				.addGap(30)
-				.addGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING).addComponent(lblRedsScoringProtocol)
+					.addGap(30)
+					.addGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING)
+						.addComponent(lblRedsScoringProtocol)
 						.addComponent(reputationTreeDepthLabel))
-				.addPreferredGap(ComponentPlacement.RELATED, 58, Short.MAX_VALUE)
-				.addGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING, false)
-						.addGroup(gl_redsPanel.createSequentialGroup().addComponent(reputationTreeDepthField)
-								.addContainerGap())
-						.addComponent(redsScoringComboBox, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 134,
-								GroupLayout.PREFERRED_SIZE))));
-		gl_redsPanel.setVerticalGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_redsPanel.createSequentialGroup().addGap(14)
-						.addGroup(gl_redsPanel.createParallelGroup(Alignment.BASELINE).addComponent(lblRedsBucketSize_1)
-								.addComponent(minObservationsField, GroupLayout.PREFERRED_SIZE,
-										GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(reputationTreeDepthLabel).addComponent(reputationTreeDepthField,
-								GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addPreferredGap(ComponentPlacement.UNRELATED)
-				.addGroup(gl_redsPanel.createParallelGroup(Alignment.BASELINE).addComponent(lblRedsBucketSize)
-						.addComponent(redsScoringComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-								GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblRedsScoringProtocol).addComponent(bucketSizeField, GroupLayout.PREFERRED_SIZE,
-								GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addContainerGap(8, Short.MAX_VALUE)));
+					.addGap(25)
+					.addGroup(gl_redsPanel.createParallelGroup(Alignment.TRAILING)
+						.addComponent(redsScoringComboBox, GroupLayout.PREFERRED_SIZE, 128, GroupLayout.PREFERRED_SIZE)
+						.addComponent(reputationTreeDepthField, GroupLayout.PREFERRED_SIZE, 119, GroupLayout.PREFERRED_SIZE))
+					.addContainerGap())
+		);
+		gl_redsPanel.setVerticalGroup(
+			gl_redsPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_redsPanel.createSequentialGroup()
+					.addGap(14)
+					.addGroup(gl_redsPanel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblRedsBucketSize_1)
+						.addComponent(minObservationsField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(reputationTreeDepthLabel)
+						.addComponent(reputationTreeDepthField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addGroup(gl_redsPanel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblRedsBucketSize)
+						.addComponent(redsScoringComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblRedsScoringProtocol)
+						.addComponent(bucketSizeField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addContainerGap(8, Short.MAX_VALUE))
+		);
 		redsPanel.setLayout(gl_redsPanel);
 
 		progressBar = new JProgressBar();
@@ -739,23 +745,6 @@ public class SimulationSettingsFrame extends JFrame
 
 	}
 
-	protected void invoke(Runnable runnable)
-	{
-		if (SwingUtilities.isEventDispatchThread())
-		{
-			runnable.run();
-			return;
-		}
-		try
-		{
-			SwingUtilities.invokeAndWait(runnable);
-		}
-		catch (InvocationTargetException | InterruptedException e)
-		{
-			e.printStackTrace();
-		}
-	}
-
 	class SimulationLogHandler extends Handler
 	{
 
@@ -770,7 +759,7 @@ public class SimulationSettingsFrame extends JFrame
 		@Override
 		public void publish(final LogRecord record)
 		{
-			invoke(new Runnable()
+			Simulation.invoke(new Runnable()
 			{
 
 				@Override
@@ -790,7 +779,7 @@ public class SimulationSettingsFrame extends JFrame
 		public void flush()
 		{
 
-			invoke(new Runnable()
+			Simulation.invoke(new Runnable()
 			{
 				@Override
 				public void run()
@@ -805,7 +794,7 @@ public class SimulationSettingsFrame extends JFrame
 		@Override
 		public void close() throws SecurityException
 		{
-			invoke(new Runnable()
+			Simulation.invoke(new Runnable()
 			{
 
 				@Override

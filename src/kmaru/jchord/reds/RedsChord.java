@@ -1,10 +1,17 @@
 package kmaru.jchord.reds;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+
 import java.util.Random;
 
 import kmaru.jchord.ChordException;
+import kmaru.jchord.ChordKey;
 import kmaru.jchord.ChordNode;
 import kmaru.jchord.halo.HaloChord;
 import kmaru.jchord.simulation.ChordProtocol;
@@ -12,9 +19,9 @@ import kmaru.jchord.simulation.ChordProtocol;
 public class RedsChord extends HaloChord
 {
 
-	int							bucketSize;
-	private int					reputationTreeDepth;
-	private int					minimumObservations;
+	int									bucketSize;
+	private int							reputationTreeDepth;
+	private int							minimumObservations;
 	private SharedReputationAlgorithm	scoringAlgorithm;
 
 	public RedsChord(double maliciousNodeProbability, int haloRedundancy, int bucketSize, int reputationTreDepth,
@@ -45,7 +52,7 @@ public class RedsChord extends HaloChord
 		}
 
 		sortedNodeMap.put(node.getNodeKey(), node);
-		
+
 		return node;
 	}
 
@@ -62,7 +69,7 @@ public class RedsChord extends HaloChord
 		}
 
 		sortedNodeMap.put(node.getNodeKey(), node);
-		
+
 		return node;
 	}
 
@@ -75,12 +82,12 @@ public class RedsChord extends HaloChord
 	{
 		return minimumObservations;
 	}
-	
+
 	public SharedReputationAlgorithm getScoringAlgorithm()
 	{
 		return scoringAlgorithm;
 	}
-	
+
 	@Override
 	public List<ChordNode> getMaliciousNodeList()
 	{
@@ -101,5 +108,38 @@ public class RedsChord extends HaloChord
 		return ChordProtocol.REDS;
 	}
 
+	/**
+	 * This method gathers all scores of all nodes from nodes' reputation trees.
+	 * @return
+	 */
+	public Map<ChordKey, DescriptiveStatistics> summarizeScores()
+	{
+		Map<ChordKey, DescriptiveStatistics> map = new HashMap<>();
+
+		for (Entry<ChordKey, ChordNode> entry : getSortedNodeMap().entrySet())
+		{
+			for (ChordNode node : entry.getValue().getFingerList())
+			{
+				ChordNode itNode = node;
+				for (Entry<Integer, ReputationTree> entry2 : ((RedsChordNode) entry.getValue()).getScoreMap()
+						.get(node.getNodeKey()).entrySet())
+				{
+					ChordKey key = itNode.getNodeKey();
+					if (map.containsKey(key) == false)
+						map.put(key, new DescriptiveStatistics());
+
+					map.get(key).addValue(entry2.getValue().getRoot().getScore());
+					
+					if (itNode.getPredecessor() == null)
+						break;
+					itNode = itNode.getPredecessor();
+				}
+				
+			}
+			
+		}
+
+		return map;
+	}
 
 }
