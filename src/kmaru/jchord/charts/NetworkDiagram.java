@@ -89,9 +89,9 @@ public class NetworkDiagram
 					{
 						Object v1 = vertices.get(j);
 						Object v2 = vertices.get(j + 1);
-						graph.insertEdge(parent, null, null, v2, v1);
+						graph.insertEdge(parent, null, null, v1, v2);
 					}
-					graph.insertEdge(parent, null, null, vertices.get(0), vertices.get(vertices.size() - 1));
+					graph.insertEdge(parent, null, null, vertices.get(vertices.size() - 1), vertices.get(0));
 				}
 				finally
 				{
@@ -106,6 +106,8 @@ public class NetworkDiagram
 			{
 				mxGraphComponent graphComponent = new mxGraphComponent(graph);
 				graphComponent.setCenterPage(true);
+				graphComponent.setDragEnabled(false);
+				graphComponent.setConnectable(false);
 
 				frame.add(graphComponent, BorderLayout.CENTER);
 				frame.pack();
@@ -113,8 +115,8 @@ public class NetworkDiagram
 				frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 				frame.setVisible(true);
 			}
-			
-			
+
+
 		}.execute();
 
 	}

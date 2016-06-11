@@ -1,6 +1,7 @@
 package kmaru.jchord.simulation;
 
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
@@ -9,6 +10,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +28,6 @@ import javax.swing.SwingUtilities;
 
 import org.apache.commons.collections4.MultiMap;
 import org.apache.commons.collections4.map.MultiValueMap;
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 
 import kmaru.jchord.Chord;
@@ -45,10 +46,13 @@ import kmaru.jchord.reds.SharedReputationAlgorithm;
 public class Simulation
 {
 
-	private Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+	private static final String	MESSAGE_COUNT_FILE	= "message count.csv";
+	private static final String	HOP_COUNT_FILE		= "hop count.csv";
 
-	private volatile int	progress	= 0;
-	private SimulationData	simulationData;
+	private Logger				logger				= Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+
+	private volatile int		progress			= 0;
+	private SimulationData		simulationData;
 
 	public Simulation()
 	{
@@ -111,15 +115,16 @@ public class Simulation
 	{
 		switch (chordProtocol)
 		{
-		case Chord:
-			return "chord";
-		case HALO:
-			return "halo " + simulationData.getHaloRedundancy();
-		case REDS:
-			return "reds (collaborative"
-					+ (simulationData.getSharedReputationAlgorithm() == SharedReputationAlgorithm.Off ? ""
-							: ("-" + simulationData.getSharedReputationAlgorithm()))
-					+ ")";
+			case Chord:
+				return "chord";
+			case HALO:
+				return "halo " + simulationData.getHaloRedundancy();
+			case REDS:
+				return "reds (collaborative)";
+			case REDS_DROP_OFF:
+				return "reds (collaborative - drop off)";
+			case REDS_CONSENSUS:
+				return "reds (collaborative - consensus)";
 		}
 		throw new IllegalStateException();
 	}
@@ -127,6 +132,7 @@ public class Simulation
 	private MultiMap<Double, Double> runTest(final ChordProtocol protocol) throws Exception
 	{
 		final MultiMap<Double, Double> resultMap = new MultiValueMap<>();
+		initializeMessageCountFile();
 
 		getLogger().log(Level.INFO, "Testing network for protocol " + protocol);
 		final Semaphore semaphore = new Semaphore(
@@ -211,6 +217,7 @@ public class Simulation
 			ChordNode sourceNode = goodNodeList.get(source);
 			ChordNode destNode = goodNodeList.get(dest);
 
+			sourceNode.insertNewHopCount();
 			ChordNode foundSuccessor = sourceNode.locate(destNode.getNodeKey());
 			if (ChordNode.validateResult(foundSuccessor, destNode.getNodeKey()))
 				successfulLookups++;
@@ -253,23 +260,72 @@ public class Simulation
 
 	private void preSimulation(final double probability, Chord chord)
 	{
-		if (chord.getProtocol() == ChordProtocol.REDS)
+		if (EnumSet.of(ChordProtocol.REDS, ChordProtocol.REDS_DROP_OFF, ChordProtocol.REDS_CONSENSUS)
+				.contains(chord.getProtocol()))
 			testNetwork(chord, probability, 250);
 	}
 
 	private void postSimulation(final double probability, int j, Chord chord)
 	{
-		if (simulationData.getRunningSimulations().contains(ChordProtocol.REDS)
-				&& (probability == (simulationData.getMaxFailureRate()) * 0.01 && j == 0))
+		if (EnumSet.of(ChordProtocol.REDS, ChordProtocol.REDS_DROP_OFF, ChordProtocol.REDS_CONSENSUS).contains(
+				chord.getProtocol()) && (probability == (simulationData.getMaxFailureRate()) * 0.01 && j == 0))
 		{
-			estimateMaliciosNodes((RedsChord) chord);
-			
-			if (simulationData.getSharedReputationAlgorithm() == SharedReputationAlgorithm.Consensus)
+			// estimateMaliciosNodes((RedsChord) chord);
+
+			if (chord.getProtocol() == ChordProtocol.REDS_CONSENSUS)
 				saveConsensusInformation(chord);
+		}
+
+		saveMessageCount(chord, probability);
+
+		if (probability == (simulationData.getMaxFailureRate()) * 0.01 && j == 0)
+			saveHopCount(chord, probability);
+	}
+
+	private void initializeMessageCountFile()
+	{
+		try (PrintStream stream = new PrintStream(new FileOutputStream(MESSAGE_COUNT_FILE, true)))
+		{
+			stream.println("Protocol,\tMalicious node probability,\tNumber of lookups,\tMessage count");
+		}
+		catch (FileNotFoundException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
-	
+	private synchronized void saveMessageCount(Chord chord, double probability)
+	{
+		int messageCount = (int) getSimulationData().getCustomProperties().get("Message count");
+		try (PrintStream stream = new PrintStream(new FileOutputStream(MESSAGE_COUNT_FILE, true)))
+		{
+			stream.println(chord.getProtocol() + "," + probability + "," + chord.getSimulationData().getNumberOfLookups() + "," + messageCount);
+		}
+		catch (FileNotFoundException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	private synchronized void saveHopCount(Chord chord, double probability)
+	{
+		@SuppressWarnings("unchecked")
+		List<Integer> list = (List<Integer>) getSimulationData().getCustomProperties().get("Hop count");
+		try (PrintStream stream = new PrintStream(new FileOutputStream(HOP_COUNT_FILE, true)))
+		{
+			for (int hop : list)
+				if (hop != 0)
+					stream.println(chord.getProtocol() + "," + probability + "," + chord.getSimulationData().getNumberOfLookups() + "," + hop);
+		}
+		catch (FileNotFoundException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	private void applyChurn(Chord chord, double probability, Random rand)
 	{
 		List<ChordNode> goodNodeList = chord.getGoodNodeList();
@@ -452,7 +508,8 @@ public class Simulation
 		if (logger != null)
 			logger.log(Level.INFO, "Finger Tables are fixed.");
 
-		if (chord.getProtocol() == ChordProtocol.REDS)
+		if (EnumSet.of(ChordProtocol.REDS, ChordProtocol.REDS_DROP_OFF, ChordProtocol.REDS_CONSENSUS)
+				.contains(chord.getProtocol()))
 		{
 			for (int i = 0; i < chord.getNumberOfNodes(); i++)
 			{
@@ -471,19 +528,29 @@ public class Simulation
 		Chord chord = null;
 		switch (protocol)
 		{
-		case Chord:
-			chord = new Chord(0);
-			break;
-		case HALO:
-			chord = new HaloChord(0, simulationData.getHaloRedundancy());
-			break;
-		case REDS:
-			chord = new RedsChord(0, simulationData.getHaloRedundancy(), simulationData.getBucketSize(),
-					simulationData.getRedsReputationTreeDepth(), simulationData.getRedsMinObservations(),
-					simulationData.getSharedReputationAlgorithm());
-			break;
-		default:
-			return null;
+			case Chord:
+				chord = new Chord(0);
+				break;
+			case HALO:
+				chord = new HaloChord(0, simulationData.getHaloRedundancy());
+				break;
+			case REDS:
+				chord = new RedsChord(0, simulationData.getHaloRedundancy(), simulationData.getBucketSize(),
+						simulationData.getRedsReputationTreeDepth(), simulationData.getRedsMinObservations(),
+						SharedReputationAlgorithm.Off);
+				break;
+			case REDS_DROP_OFF:
+				chord = new RedsChord(0, simulationData.getHaloRedundancy(), simulationData.getBucketSize(),
+						simulationData.getRedsReputationTreeDepth(), simulationData.getRedsMinObservations(),
+						SharedReputationAlgorithm.DropOff);
+				break;
+			case REDS_CONSENSUS:
+				chord = new RedsChord(0, simulationData.getHaloRedundancy(), simulationData.getBucketSize(),
+						simulationData.getRedsReputationTreeDepth(), simulationData.getRedsMinObservations(),
+						SharedReputationAlgorithm.Consensus);
+				break;
+			default:
+				return null;
 		}
 		chord.setSimulationData(getSimulationData());
 		return chord;
@@ -632,16 +699,9 @@ public class Simulation
 
 	public void estimateMaliciosNodes(RedsChord reds)
 	{
-		Map<ChordKey, DescriptiveStatistics> map = reds.summarizeScores();
-		
-		List<ChordKey> maliciousNodes = new ArrayList<>();
-		for (Entry<ChordKey, DescriptiveStatistics> entry : map.entrySet())
-		{
-			// We consider the average of all scores of one node as its overall score.
-			if (entry.getValue().getMean() < 0)
-				maliciousNodes.add(entry.getKey());
-		}
-		
+		// List<ChordKey> maliciousNodes =
+		// estimateMaliciousNodesUsingRawScores(reds);
+		List<ChordKey> maliciousNodes = estimateMaliciousNodesUsingConsensusScores(reds);
 
 		int undetected = 0;
 		List<ChordNode> realMaliciousNodeList = reds.getMaliciousNodeList();
@@ -650,7 +710,7 @@ public class Simulation
 		{
 			realMaliciousKeys.add(node.getNodeKey());
 		}
-		
+
 		for (ChordKey chordKey : realMaliciousKeys)
 		{
 			if (maliciousNodes.contains(chordKey) == false)
@@ -663,12 +723,44 @@ public class Simulation
 				falseDetected++;
 		}
 		int detected = realMaliciousNodeList.size() - undetected;
-		
+
 		System.out.println("Undetected = " + undetected);
 		System.out.println("False Detected = " + falseDetected);
 		System.out.println("Detected = " + detected);
 	}
-	
+
+	// private List<ChordKey> estimateMaliciousNodesUsingRawScores(RedsChord reds)
+	// {
+	// List<ChordKey> maliciousNodes = new ArrayList<>();
+	//
+	// Map<ChordKey, DescriptiveStatistics> map = reds.summarizeScores();
+	// for (Entry<ChordKey, DescriptiveStatistics> entry : map.entrySet())
+	// {
+	// // We consider the average of all scores of one node as its overall
+	// // score.
+	// if (entry.getValue().getMin() == 0 && entry.getValue().getMax() == 0)
+	// continue;
+	// if (entry.getValue().getMean() - entry.getValue().getStandardDeviation() < -0.5)
+	// maliciousNodes.add(entry.getKey());
+	// }
+	//
+	// return maliciousNodes;
+	// }
+
+	private List<ChordKey> estimateMaliciousNodesUsingConsensusScores(RedsChord reds)
+	{
+		List<ChordKey> maliciousNodes = new ArrayList<>();
+
+		Map<ChordNode, Double> map = reds.summarizeConsensusScores();
+		for (Entry<ChordNode, Double> entry : map.entrySet())
+		{
+			if (entry.getValue() < -0.5)
+				maliciousNodes.add(entry.getKey().getNodeKey());
+		}
+
+		return maliciousNodes;
+	}
+
 	public static void invoke(Runnable runnable)
 	{
 		if (SwingUtilities.isEventDispatchThread())

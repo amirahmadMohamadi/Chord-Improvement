@@ -17,12 +17,13 @@ public class Chord
 	protected List<ChordNode>					nodeList;
 	protected SortedMap<ChordKey, ChordNode>	sortedNodeMap;
 	Object[]									sortedKeyArray;
-	
+
 	public Chord(double maliciousNodeProbability)
 	{
 		this.maliciousNodeProbability = maliciousNodeProbability;
 		this.nodeList = new ArrayList<ChordNode>();
 		this.sortedNodeMap = new TreeMap<ChordKey, ChordNode>();
+
 	}
 
 	public ChordNode createNode(String nodeId) throws ChordException
@@ -32,7 +33,7 @@ public class Chord
 		if (rand.nextInt(100) < maliciousNodeProbability * 100)
 			node = new MaliciousChordNode(nodeId, this);
 		else
-			node = new ChordNode(nodeId);
+			node = new ChordNode(nodeId, this);
 
 		nodeList.add(node);
 
@@ -42,7 +43,7 @@ public class Chord
 		}
 
 		sortedNodeMap.put(node.getNodeKey(), node);
-		
+
 		return node;
 	}
 
@@ -58,7 +59,7 @@ public class Chord
 		}
 
 		sortedNodeMap.put(node.getNodeKey(), node);
-		
+
 		return node;
 	}
 
@@ -69,7 +70,7 @@ public class Chord
 		sortedNodeMap.remove(node.getNodeKey());
 		sortedKeyArray = sortedNodeMap.keySet().toArray();
 	}
-	
+
 	public ChordNode getNode(int i)
 	{
 		return (ChordNode) nodeList.get(i);
@@ -129,6 +130,8 @@ public class Chord
 	public void setSimulationData(SimulationData simulationData)
 	{
 		this.simulationData = simulationData;
+		getSimulationData().getCustomProperties().put("Message count", 0);
+		getSimulationData().getCustomProperties().put("Hop count", new ArrayList<Integer>());
 	}
 
 	public ChordProtocol getProtocol()

@@ -5,12 +5,10 @@ import java.util.Map.Entry;
 public class MaliciousChordNode extends ChordNode
 {
 
-	Chord	chord;
 
 	public MaliciousChordNode(String nodeId, Chord chord)
 	{
-		super(nodeId);
-		this.chord = chord;
+		super(nodeId, chord);
 	}
 
 	
@@ -29,7 +27,7 @@ public class MaliciousChordNode extends ChordNode
 	private ChordNode closestMaliciousNode(ChordKey key)
 	{
 		ChordKey maliciousKey = null;
-		for (Entry<ChordKey, ChordNode> entry : chord.getSortedNodeMap().entrySet())
+		for (Entry<ChordKey, ChordNode> entry : getChord().getSortedNodeMap().entrySet())
 		{
 			if (entry.getValue() instanceof MaliciousChordNode == false)
 				continue;
@@ -42,7 +40,7 @@ public class MaliciousChordNode extends ChordNode
 			}
 		}
 		if (maliciousKey == null)
-			for (Entry<ChordKey, ChordNode> entry : chord.getSortedNodeMap().entrySet())
+			for (Entry<ChordKey, ChordNode> entry : getChord().getSortedNodeMap().entrySet())
 			{
 				if (entry.getValue() instanceof MaliciousChordNode == false)
 					continue;
@@ -54,7 +52,7 @@ public class MaliciousChordNode extends ChordNode
 						maliciousKey = entry.getKey();
 				}
 			}
-		return chord.getSortedNodeMap().get(maliciousKey);
+		return getChord().getSortedNodeMap().get(maliciousKey);
 	}
 
 	@Override

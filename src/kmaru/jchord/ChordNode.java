@@ -16,22 +16,26 @@ public class ChordNode
 	protected FingerTable		fingerTable;
 	List<ChordNode>				fingers;
 
-	private int numberOfLocateOperations;
+	private Chord				cord;
 
-	public int SUCCESSOR_LIST_SIZE = 10;
+	private int					numberOfLocateOperations;
 
-	public ChordNode(String nodeId)
+	public int					SUCCESSOR_LIST_SIZE	= 10;
+
+	public ChordNode(String nodeId, Chord chord)
 	{
 		this.nodeId = nodeId;
 		this.nodeKey = new ChordKey(nodeId);
 		this.fingerTable = new FingerTable(this);
 		numberOfLocateOperations = 0;
 		this.create();
+		cord = chord;
+
 	}
 
 	/**
 	 * Lookup a successor of given identifier
-	 * 
+	 *
 	 * @param identifier
 	 *            an identifier to lookup
 	 * @return the successor of given identifier
@@ -61,8 +65,12 @@ public class ChordNode
 			ChordNode node = closestPrecedingNode(key);
 			if (node == this)
 			{
+				incrementMessageCount(1);
+				incrementHopCount(1);
 				return successorList.get(0).locate(key);
 			}
+			incrementMessageCount(1);
+			incrementHopCount(1);
 			return node.locate(key);
 		}
 
@@ -70,7 +78,7 @@ public class ChordNode
 
 	/**
 	 * Lookup a successor of given key
-	 * 
+	 *
 	 * @param identifier
 	 *            an identifier to lookup
 	 * @return the successor of given identifier
@@ -146,9 +154,9 @@ public class ChordNode
 		this.predecessor = null;
 		this.fingers.clear();
 		this.fingerTable.fingers = null;
-			
+
 	}
-	
+
 	public void leave()
 	{
 		successorList.get(0).predecessorRemoved();
@@ -177,7 +185,7 @@ public class ChordNode
 
 	/**
 	 * Joins a Chord ring with a node in the Chord ring
-	 * 
+	 *
 	 * @param node
 	 *            a bootstrapping node
 	 */
@@ -189,8 +197,7 @@ public class ChordNode
 	}
 
 	/**
-	 * Verifies the successor, and tells the successor about this node. Should
-	 * be called periodically.
+	 * Verifies the successor, and tells the successor about this node. Should be called periodically.
 	 */
 	public void stabilize()
 	{
@@ -231,7 +238,7 @@ public class ChordNode
 			ChordKey key = finger.getStart();
 			finger.setNode(findSuccessor(key));
 		}
-		
+
 		Set<ChordNode> fingerSet = new HashSet<>();
 		for (int j = 0; j < Hash.KEY_LENGTH; j++)
 			fingerSet.add(getFingerTable().getFinger(j).getNode());
@@ -300,6 +307,11 @@ public class ChordNode
 		out.println("=======================================================");
 	}
 
+	public Chord getChord()
+	{
+		return cord;
+	}
+
 	public String getNodeId()
 	{
 		return nodeId;
@@ -339,7 +351,7 @@ public class ChordNode
 	{
 		return successorList;
 	}
-	
+
 	public void setSuccessor(ChordNode successor)
 	{
 		this.successorList.clear();
@@ -383,7 +395,7 @@ public class ChordNode
 	{
 		return this.fingers;
 	}
-	
+
 	public static boolean validateResult(ChordNode resultNode, ChordKey key)
 	{
 		if (resultNode.getPredecessor() == null)
@@ -395,6 +407,32 @@ public class ChordNode
 	public int getNumberOfLocateOperations()
 	{
 		return numberOfLocateOperations;
+	}
+
+	public void incrementMessageCount(int number)
+	{
+		int messageCount = (int) getChord().getSimulationData().getCustomProperties().get("Message count");
+		getChord().getSimulationData().getCustomProperties().put("Message count", messageCount + number);
+	}
+
+	public void insertNewHopCount()
+	{
+		@SuppressWarnings("unchecked")
+		List<Integer> list = (List<Integer>) getChord().getSimulationData().getCustomProperties().get("Hop count");
+		list.add(0);
+		getChord().getSimulationData().getCustomProperties().put("Hop count", list);
+	}
+
+	public void incrementHopCount(int number)
+	{
+		@SuppressWarnings("unchecked")
+		List<Integer> list = (List<Integer>) getChord().getSimulationData().getCustomProperties().get("Hop count");
+		if (list.isEmpty())
+			return;
+		int hopcount = list.get(list.size() - 1);
+		hopcount = hopcount + number;
+		list.set(list.size() - 1, hopcount);
+		getChord().getSimulationData().getCustomProperties().put("Hop count", list);
 	}
 
 }

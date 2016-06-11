@@ -13,18 +13,15 @@ import kmaru.jchord.Hash;
 public class HaloChordNode extends ChordNode
 {
 
-	private HaloChord haloChord;
-
 	public HaloChordNode(String nodeId, HaloChord haloChord)
 	{
-		super(nodeId);
-		this.haloChord = haloChord;
+		super(nodeId, haloChord);
 	}
 
 	@Override
 	public ChordNode locate(ChordKey key)
 	{
-		List<ChordNode> results = HALocate(this, key, haloChord.haloRedundancy, null);
+		List<ChordNode> results = HALocate(this, key, getChord().haloRedundancy, null);
 
 		return reviewResults(key, results);
 	}
@@ -42,29 +39,35 @@ public class HaloChordNode extends ChordNode
 			if (trustedNodes == null)
 			{
 				ChordNode finger = node.getFingerNode(i);
+				incrementMessageCount(1);
+				insertNewHopCount();
 				knuckle = ((HaloChordNode) finger).chordLocate(knuckleKey);
 			}
 			else
 			{
+				incrementMessageCount(1);
+				insertNewHopCount();
 				if (trustedNodes.size() > i)
 					knuckle = ((HaloChordNode) trustedNodes.get(i)).chordLocate(knuckleKey);
 				else
 					knuckle = ((HaloChordNode) node).chordLocate(knuckleKey);
 			}
-			
+
 			if (knuckle == null)
 				throw new IllegalStateException("locate result is null");
-			
+
 			ChordNode improvedKnuckle = improveKnucleEstimate(knuckle, key, knuckleKey, i);
 			knuckleList.add(improvedKnuckle);
 
+			incrementMessageCount(1);
 			ChordNode finger = improvedKnuckle.getFingerTable().getFinger(Hash.KEY_LENGTH - 1 - i).getNode();
 
 			// TODO this makes results better but I don't know why this happens
-//			if (validateResult(finger.getPredecessor(), key))
-//				finger = finger.getPredecessor();
+			// if (validateResult(finger.getPredecessor(), key))
+			// finger = finger.getPredecessor();
 			resultList.add(finger);
 		}
+		incrementMessageCount(1);
 		ChordNode chordResult = ((HaloChordNode) node).chordLocate(key);
 		resultList.add(chordResult);
 
@@ -74,7 +77,7 @@ public class HaloChordNode extends ChordNode
 	/**
 	 * Returns a node that it's ith finger is the specified key. The algorithm
 	 * is based on knuckle search algorithm
-	 * 
+	 *
 	 * @param key
 	 * @param i
 	 * @return
@@ -82,17 +85,20 @@ public class HaloChordNode extends ChordNode
 	protected ChordNode knuckleSearch(ChordKey key, int i)
 	{
 		ChordKey knuckleKey = key.createEndKey(Hash.KEY_LENGTH - 1 - i);
+		incrementMessageCount(1);
 		ChordNode knuckle = chordLocate(knuckleKey);
 		return improveKnucleEstimate(knuckle, key, knuckleKey, i);
 	}
 
 	protected ChordNode chordLocate(ChordKey key)
 	{
+		incrementMessageCount(1);
 		if (this == successorList.get(0))
 		{
 			return this;
 		}
 
+		incrementMessageCount(1);
 		if (validateResult(this, key))
 			return this;
 
@@ -106,8 +112,13 @@ public class HaloChordNode extends ChordNode
 			ChordNode node = closestPrecedingNode(key);
 			if (node == this)
 			{
+				incrementMessageCount(1);
+				incrementHopCount(1);
 				return ((HaloChordNode) successorList.get(0)).chordLocate(key);
 			}
+
+			incrementMessageCount(1);
+			incrementHopCount(1);
 			return ((HaloChordNode) node).chordLocate(key);
 		}
 	}
@@ -131,8 +142,10 @@ public class HaloChordNode extends ChordNode
 
 	}
 
-	private static ChordNode improveKnucleEstimate(ChordNode knuckle, ChordKey key, ChordKey knuckleKey, int i)
+	private ChordNode improveKnucleEstimate(ChordNode knuckle, ChordKey key, ChordKey knuckleKey, int i)
 	{
+		incrementMessageCount(2);
+
 		if (knuckle.getPredecessor() == null)
 			return knuckle;
 		Finger finger = knuckle.getPredecessor().getFingerTable().getFinger(Hash.KEY_LENGTH - 1 - i);
@@ -144,9 +157,10 @@ public class HaloChordNode extends ChordNode
 			return knuckle.getPredecessor();
 	}
 
+	@Override
 	public HaloChord getChord()
 	{
-		return haloChord;
+		return (HaloChord) super.getChord();
 	}
 
 	// @Override

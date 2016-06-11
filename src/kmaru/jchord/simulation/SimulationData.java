@@ -3,37 +3,35 @@ package kmaru.jchord.simulation;
 import java.util.EnumSet;
 import java.util.Properties;
 
-import kmaru.jchord.reds.SharedReputationAlgorithm;
-
 public class SimulationData
 {
-	private boolean					isNetworkRingDrawn;
-	private boolean					isResultDrawn;
-	private boolean					isResultSaved;
-	private EnumSet<ChordProtocol>	runningSimulations;
-	private String					hashFunction;
-	private int						keyLength;
-	private int						numberOfNodes;
-	private int						numberOfLookups;
-	private int						maxFailureRate;
-	private int						minFailureRate;
-	private int						repeatingTestsNumber;
-	private int						haloRedundancy;
-	private int						bucketSize;
-	private int						redsMinObservations;
-	private int						redsReputationTreeDepth;
-	private boolean					isChurnEnabled;
-	private SharedReputationAlgorithm		scoringAlgorithm;
+	private boolean						isNetworkRingDrawn;
+	private boolean						isResultDrawn;
+	private boolean						isResultSaved;
+	private EnumSet<ChordProtocol>		runningSimulations;
+	private String						hashFunction;
+	private int							keyLength;
+	private int							numberOfNodes;
+	private int							numberOfLookups;
+	private int							maxFailureRate;
+	private int							minFailureRate;
+	private int							repeatingTestsNumber;
+	private int							haloRedundancy;
+	private int							bucketSize;
+	private int							redsMinObservations;
+	private int							redsReputationTreeDepth;
+	private boolean						isChurnEnabled;
+	private double						alpha;
 
-	private Properties customParameters;
+	private Properties					customParameters;
 
-	public static final SimulationData DEFAULT_SIMULATION_DATA = new SimulationData(true, true, true,
+	public static final SimulationData	DEFAULT_SIMULATION_DATA	= new SimulationData(true, true, true,
 			EnumSet.of(ChordProtocol.REDS, ChordProtocol.HALO), DEFAULT_SIMULATION_SETTINGS.HASH_FUNCTION,
 			DEFAULT_SIMULATION_SETTINGS.KEY_LENGTH, DEFAULT_SIMULATION_SETTINGS.NUM_OF_NODES,
 			DEFAULT_SIMULATION_SETTINGS.NUM_OF_LOOKUPS, DEFAULT_SIMULATION_SETTINGS.MAX_MALICIOUS_PROBABILITY,
 			DEFAULT_SIMULATION_SETTINGS.NUM_OF_REPEATING_TESTS, DEFAULT_SIMULATION_SETTINGS.NUM_OF_HALO_REDUNDANCY,
 			DEFAULT_SIMULATION_SETTINGS.NUM_OF_BUCKET_SIZE, DEFAULT_SIMULATION_SETTINGS.REDS_MINIMUM_OBSERVATIONS,
-			DEFAULT_SIMULATION_SETTINGS.REDS_REPUTATION_TREE_DEPTH, SharedReputationAlgorithm.DropOff);
+			DEFAULT_SIMULATION_SETTINGS.REDS_REPUTATION_TREE_DEPTH);
 
 	public static class DEFAULT_SIMULATION_SETTINGS
 	{
@@ -59,9 +57,9 @@ public class SimulationData
 		this.hashFunction = DEFAULT_SIMULATION_SETTINGS.HASH_FUNCTION;
 		this.keyLength = DEFAULT_SIMULATION_SETTINGS.KEY_LENGTH;
 		this.runningSimulations = EnumSet.noneOf(ChordProtocol.class);
-		scoringAlgorithm = SharedReputationAlgorithm.DropOff;
 		this.minFailureRate = 0;
 		this.customParameters = new Properties();
+		alpha = 0.1;
 	}
 
 	public SimulationData(SimulationData simulationData)
@@ -70,14 +68,13 @@ public class SimulationData
 				simulationData.runningSimulations, simulationData.hashFunction, simulationData.keyLength,
 				simulationData.numberOfNodes, simulationData.numberOfLookups, simulationData.maxFailureRate,
 				simulationData.repeatingTestsNumber, simulationData.haloRedundancy, simulationData.bucketSize,
-				simulationData.redsMinObservations, simulationData.redsReputationTreeDepth,
-				simulationData.scoringAlgorithm);
+				simulationData.redsMinObservations, simulationData.redsReputationTreeDepth);
 	}
 
 	public SimulationData(boolean isNetworkRingDrawn, boolean isResultDrawn, boolean isResultSaved,
 			EnumSet<ChordProtocol> runningSimulations, String hashFunction, int keyLength, int numberOfNodes,
 			int numberOfLookups, int maxFailureRate, int repeatingTestsNumber, int haloRedundancy, int bucketSize,
-			int redsMinObservations, int redsReputationTreeDepth, SharedReputationAlgorithm scoringAlgorithm)
+			int redsMinObservations, int redsReputationTreeDepth)
 	{
 		this.isNetworkRingDrawn = isNetworkRingDrawn;
 		this.isResultDrawn = isResultDrawn;
@@ -93,8 +90,8 @@ public class SimulationData
 		this.bucketSize = bucketSize;
 		this.redsMinObservations = redsMinObservations;
 		this.redsReputationTreeDepth = redsReputationTreeDepth;
-		this.scoringAlgorithm = scoringAlgorithm;
 
+		this.alpha = 0.1;
 		this.minFailureRate = 0;
 		this.customParameters = new Properties();
 	}
@@ -249,16 +246,6 @@ public class SimulationData
 		this.redsReputationTreeDepth = redsReputationTreeDepth;
 	}
 
-	public SharedReputationAlgorithm getSharedReputationAlgorithm()
-	{
-		return this.scoringAlgorithm;
-	}
-
-	public void setScoringAlgorithm(SharedReputationAlgorithm scoringAlgorithm)
-	{
-		this.scoringAlgorithm = scoringAlgorithm;
-	}
-
 	public Properties getCustomProperties()
 	{
 		return this.customParameters;
@@ -268,9 +255,19 @@ public class SimulationData
 	{
 		return isChurnEnabled;
 	}
-	
+
 	public void setChurnEnabled(boolean churn)
 	{
 		this.isChurnEnabled = churn;
+	}
+
+	public double getAlpha()
+	{
+		return alpha;
+	}
+
+	public void setAlpha(double alpha)
+	{
+		this.alpha = alpha;
 	}
 }

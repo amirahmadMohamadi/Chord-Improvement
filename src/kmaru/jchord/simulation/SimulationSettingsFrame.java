@@ -33,49 +33,50 @@ import org.apache.commons.collections4.queue.CircularFifoQueue;
 import com.jidesoft.dialog.JideOptionPane;
 import com.jidesoft.plaf.LookAndFeelFactory;
 
-import kmaru.jchord.reds.SharedReputationAlgorithm;
-
 public class SimulationSettingsFrame extends JFrame
 {
 
-	private SimulationLogHandler HANDLER = new SimulationLogHandler();
+	private SimulationLogHandler	HANDLER				= new SimulationLogHandler();
 
 	/**
-	 * 
+	 *
 	 */
-	private static final long serialVersionUID = 4029167558803322908L;
+	private static final long		serialVersionUID	= 4029167558803322908L;
 
-	private JPanel									contentPane;
-	private JComboBox<String>						hashFunctionComboBox;
-	private JFormattedTextField						keyLengthField;
-	private JFormattedTextField						nodesField;
-	private JFormattedTextField						repeatingTestField;
-	private JFormattedTextField						minFailureRateFormattedField;
-	private JFormattedTextField						maxFailureRateFormattedField;
-	private JFormattedTextField						haloRedundancyField;
-	private JCheckBox								drawNetworkCheckBox;
-	private JCheckBox								drawResultCheckBox;
-	private JCheckBox								saveToFileCheckBox;
-	private JButton									startSimulationButton;
-	private JProgressBar							progressBar;
-	private JLabel									lblNumberOfLookups;
-	private JFormattedTextField						lookupsField;
-	private JLabel									lblRedsBucketSize;
-	private JFormattedTextField						bucketSizeField;
-	private JCheckBox								chordCheckBox;
-	private JCheckBox								haloCheckBox;
-	private JCheckBox								redsCheckBox;
-	private JFormattedTextField						minObservationsField;
-	private JFormattedTextField						reputationTreeDepthField;
-	private JComboBox<SharedReputationAlgorithm>	redsScoringComboBox;
-	private JPanel									redsPanel;
-	private JCheckBox								chckbxChurn;
+	private JPanel					contentPane;
+	private JComboBox<String>		hashFunctionComboBox;
+	private JFormattedTextField		keyLengthField;
+	private JFormattedTextField		nodesField;
+	private JFormattedTextField		repeatingTestField;
+	private JFormattedTextField		minFailureRateFormattedField;
+	private JFormattedTextField		maxFailureRateFormattedField;
+	private JFormattedTextField		haloRedundancyField;
+	private JCheckBox				drawNetworkCheckBox;
+	private JCheckBox				drawResultCheckBox;
+	private JCheckBox				saveToFileCheckBox;
+	private JButton					startSimulationButton;
+	private JProgressBar			progressBar;
+	private JLabel					lblNumberOfLookups;
+	private JFormattedTextField		lookupsField;
+	private JLabel					lblRedsBucketSize;
+	private JFormattedTextField		bucketSizeField;
+	private JCheckBox				chordCheckBox;
+	private JCheckBox				haloCheckBox;
+	private JCheckBox				redsCheckBox;
+	private JFormattedTextField		minObservationsField;
+	private JFormattedTextField		reputationTreeDepthField;
+	private JPanel					redsPanel;
+	private JCheckBox				chckbxChurn;
 
-	private SimulationData simulationData = new SimulationData(SimulationData.DEFAULT_SIMULATION_DATA);
+	private SimulationData			simulationData		= new SimulationData(SimulationData.DEFAULT_SIMULATION_DATA);
 
-	protected LogDialog logDialog;
+	protected LogDialog				logDialog;
 
-	private JButton showConsoleButton;
+	private JButton					showConsoleButton;
+	private JCheckBox				dropOffCheckBox;
+	private JCheckBox				consensusCheckBox;
+	private JLabel					lblAlpha;
+	private JFormattedTextField		alphaTextField;
 
 	/**
 	 * Launch the application.
@@ -124,6 +125,7 @@ public class SimulationSettingsFrame extends JFrame
 		minObservationsField.setValue(simulationData.getRedsMinObservations());
 		reputationTreeDepthField.setValue(simulationData.getRedsReputationTreeDepth());
 		chckbxChurn.setSelected(simulationData.isChurnEnabled());
+		alphaTextField.setValue(simulationData.getAlpha());
 
 		for (ChordProtocol chordProtocol : simulationData.getRunningSimulations())
 		{
@@ -138,10 +140,17 @@ public class SimulationSettingsFrame extends JFrame
 			case REDS:
 				redsCheckBox.setSelected(true);
 				break;
+			case REDS_CONSENSUS:
+				consensusCheckBox.setSelected(true);
+				break;
+			case REDS_DROP_OFF:
+				dropOffCheckBox.setSelected(true);
+				break;
+			default:
+				break;
 
 			}
 		}
-		redsScoringComboBox.setSelectedItem(simulationData.getSharedReputationAlgorithm());
 		drawNetworkCheckBox.setSelected(simulationData.isNetworkRingDrawn());
 		drawResultCheckBox.setSelected(simulationData.isResultDrawn());
 		saveToFileCheckBox.setSelected(simulationData.isResultSaved());
@@ -153,7 +162,7 @@ public class SimulationSettingsFrame extends JFrame
 	{
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 715, 570);
+		setBounds(100, 100, 715, 618);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -176,15 +185,17 @@ public class SimulationSettingsFrame extends JFrame
 				.setBorder(new TitledBorder(null, "REDS Settings", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		GroupLayout gl_contentPane = new GroupLayout(contentPane);
 		gl_contentPane
-				.setHorizontalGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING).addGroup(Alignment.LEADING,
-						gl_contentPane.createSequentialGroup().addContainerGap()
+				.setHorizontalGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_contentPane.createSequentialGroup().addContainerGap()
 								.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-										.addComponent(redsPanel, GroupLayout.DEFAULT_SIZE, 694, Short.MAX_VALUE)
-										.addComponent(panel_1, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 685,
+										.addComponent(panel_1, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 679,
 												Short.MAX_VALUE)
-						.addComponent(panel, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 685, Short.MAX_VALUE)
-						.addComponent(panel_3, GroupLayout.DEFAULT_SIZE, 693, Short.MAX_VALUE)
-						.addComponent(panel_2, GroupLayout.DEFAULT_SIZE, 693, Short.MAX_VALUE)).addContainerGap()));
+										.addComponent(this.redsPanel, GroupLayout.DEFAULT_SIZE, 679, Short.MAX_VALUE)
+										.addComponent(panel, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 679,
+												Short.MAX_VALUE)
+										.addComponent(panel_3, GroupLayout.DEFAULT_SIZE, 679, Short.MAX_VALUE)
+										.addComponent(panel_2, GroupLayout.DEFAULT_SIZE, 679, Short.MAX_VALUE))
+								.addContainerGap()));
 		gl_contentPane
 				.setVerticalGroup(
 						gl_contentPane.createParallelGroup(Alignment.LEADING)
@@ -192,15 +203,19 @@ public class SimulationSettingsFrame extends JFrame
 										gl_contentPane.createSequentialGroup().addGap(14)
 												.addComponent(panel, GroupLayout.PREFERRED_SIZE, 64,
 														GroupLayout.PREFERRED_SIZE)
-										.addPreferredGap(ComponentPlacement.RELATED)
-										.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-												GroupLayout.PREFERRED_SIZE).addPreferredGap(ComponentPlacement.RELATED)
-				.addComponent(redsPanel, GroupLayout.PREFERRED_SIZE, 115, GroupLayout.PREFERRED_SIZE)
-				.addPreferredGap(ComponentPlacement.RELATED)
-				.addComponent(panel_2, GroupLayout.PREFERRED_SIZE, 62, GroupLayout.PREFERRED_SIZE)
-				.addPreferredGap(ComponentPlacement.UNRELATED)
-				.addComponent(panel_3, GroupLayout.PREFERRED_SIZE, 67, GroupLayout.PREFERRED_SIZE)
-				.addContainerGap(10, Short.MAX_VALUE)));
+												.addPreferredGap(ComponentPlacement.RELATED)
+												.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, 195,
+														GroupLayout.PREFERRED_SIZE)
+												.addGap(20)
+												.addComponent(this.redsPanel, GroupLayout.PREFERRED_SIZE, 115,
+														GroupLayout.PREFERRED_SIZE)
+												.addPreferredGap(ComponentPlacement.RELATED)
+												.addComponent(panel_2, GroupLayout.PREFERRED_SIZE, 62,
+														GroupLayout.PREFERRED_SIZE)
+												.addPreferredGap(ComponentPlacement.UNRELATED)
+												.addComponent(panel_3, GroupLayout.PREFERRED_SIZE, 67,
+														GroupLayout.PREFERRED_SIZE)
+												.addContainerGap(24, Short.MAX_VALUE)));
 
 		JLabel lblRedsBucketSize_1 = new JLabel("Minimum Obsevations");
 
@@ -226,21 +241,6 @@ public class SimulationSettingsFrame extends JFrame
 				simulationData.setRedsReputationTreeDepth((int) reputationTreeDepthField.getValue());
 			}
 		});
-		JLabel lblRedsScoringProtocol = new JLabel("Shared Reputation Algorithm");
-
-		redsScoringComboBox = new JComboBox<>(new DefaultComboBoxModel<>(SharedReputationAlgorithm.values()));
-		redsScoringComboBox.addItemListener(new ItemListener()
-		{
-			@Override
-			public void itemStateChanged(ItemEvent e)
-			{
-				if (e.getStateChange() == ItemEvent.SELECTED)
-				{
-					simulationData
-							.setScoringAlgorithm((SharedReputationAlgorithm) redsScoringComboBox.getSelectedItem());
-				}
-			}
-		});
 
 		lblRedsBucketSize = new JLabel("Bucket Size");
 
@@ -253,46 +253,46 @@ public class SimulationSettingsFrame extends JFrame
 				simulationData.setBucketSize((int) bucketSizeField.getValue());
 			}
 		});
+
+		alphaTextField = new JFormattedTextField();
+
+		lblAlpha = new JLabel("alpha");
 		GroupLayout gl_redsPanel = new GroupLayout(redsPanel);
-		gl_redsPanel.setHorizontalGroup(
-			gl_redsPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_redsPanel.createSequentialGroup()
-					.addContainerGap()
-					.addGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING)
-						.addComponent(lblRedsBucketSize_1)
+		gl_redsPanel.setHorizontalGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING).addGroup(gl_redsPanel
+				.createSequentialGroup().addContainerGap()
+				.addGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING).addComponent(lblRedsBucketSize_1)
 						.addComponent(lblRedsBucketSize))
-					.addGap(30)
-					.addGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING, false)
-						.addComponent(bucketSizeField)
+				.addGap(30)
+				.addGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING, false).addComponent(bucketSizeField)
 						.addComponent(minObservationsField, GroupLayout.DEFAULT_SIZE, 134, Short.MAX_VALUE))
-					.addGap(30)
-					.addGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING)
-						.addComponent(lblRedsScoringProtocol)
-						.addComponent(reputationTreeDepthLabel))
-					.addGap(25)
-					.addGroup(gl_redsPanel.createParallelGroup(Alignment.TRAILING)
-						.addComponent(redsScoringComboBox, GroupLayout.PREFERRED_SIZE, 128, GroupLayout.PREFERRED_SIZE)
-						.addComponent(reputationTreeDepthField, GroupLayout.PREFERRED_SIZE, 119, GroupLayout.PREFERRED_SIZE))
-					.addContainerGap())
-		);
-		gl_redsPanel.setVerticalGroup(
-			gl_redsPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_redsPanel.createSequentialGroup()
-					.addGap(14)
-					.addGroup(gl_redsPanel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(lblRedsBucketSize_1)
-						.addComponent(minObservationsField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(reputationTreeDepthLabel)
-						.addComponent(reputationTreeDepthField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addPreferredGap(ComponentPlacement.UNRELATED)
-					.addGroup(gl_redsPanel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(lblRedsBucketSize)
-						.addComponent(redsScoringComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblRedsScoringProtocol)
-						.addComponent(bucketSizeField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addContainerGap(8, Short.MAX_VALUE))
-		);
+				.addGap(30)
+				.addGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING).addComponent(reputationTreeDepthLabel)
+						.addComponent(lblAlpha))
+				.addGap(42)
+				.addGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING)
+						.addComponent(reputationTreeDepthField, GroupLayout.PREFERRED_SIZE, 119,
+								GroupLayout.PREFERRED_SIZE)
+						.addComponent(alphaTextField, GroupLayout.PREFERRED_SIZE, 119, GroupLayout.PREFERRED_SIZE))
+				.addGap(21)));
+		gl_redsPanel.setVerticalGroup(gl_redsPanel.createParallelGroup(Alignment.LEADING).addGroup(gl_redsPanel
+				.createSequentialGroup().addGap(14)
+				.addGroup(gl_redsPanel.createParallelGroup(Alignment.BASELINE).addComponent(lblRedsBucketSize_1)
+						.addComponent(minObservationsField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+								GroupLayout.PREFERRED_SIZE)
+						.addComponent(reputationTreeDepthLabel).addComponent(reputationTreeDepthField,
+								GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addPreferredGap(ComponentPlacement.UNRELATED)
+				.addGroup(gl_redsPanel.createParallelGroup(Alignment.BASELINE).addComponent(lblRedsBucketSize)
+						.addComponent(bucketSizeField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+								GroupLayout.PREFERRED_SIZE)
+						.addComponent(alphaTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+								GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblAlpha))
+				.addContainerGap(9, Short.MAX_VALUE)));
 		redsPanel.setLayout(gl_redsPanel);
+
+		alphaTextField.setVisible(false);
+		lblAlpha.setVisible(false);
 
 		progressBar = new JProgressBar();
 
@@ -340,7 +340,7 @@ public class SimulationSettingsFrame extends JFrame
 								.addComponent(progressBar, GroupLayout.PREFERRED_SIZE, 356, GroupLayout.PREFERRED_SIZE)
 								.addPreferredGap(ComponentPlacement.UNRELATED).addComponent(showConsoleButton,
 										GroupLayout.PREFERRED_SIZE, 121, GroupLayout.PREFERRED_SIZE)
-				.addContainerGap(34, Short.MAX_VALUE)));
+								.addContainerGap(34, Short.MAX_VALUE)));
 		gl_panel_3.setVerticalGroup(gl_panel_3.createParallelGroup(Alignment.LEADING).addGroup(gl_panel_3
 				.createSequentialGroup().addGap(20)
 				.addGroup(gl_panel_3.createParallelGroup(Alignment.LEADING)
@@ -384,13 +384,14 @@ public class SimulationSettingsFrame extends JFrame
 		});
 		GroupLayout gl_panel_2 = new GroupLayout(panel_2);
 		gl_panel_2.setHorizontalGroup(gl_panel_2.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_panel_2.createSequentialGroup().addContainerGap().addComponent(drawNetworkCheckBox)
-						.addPreferredGap(ComponentPlacement.RELATED, 73, Short.MAX_VALUE)
-						.addComponent(drawResultCheckBox).addGap(64).addComponent(saveToFileCheckBox).addGap(23)));
-		gl_panel_2.setVerticalGroup(gl_panel_2.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_panel_2.createSequentialGroup().addContainerGap()
-						.addGroup(gl_panel_2.createParallelGroup(Alignment.BASELINE).addComponent(drawNetworkCheckBox)
-								.addComponent(saveToFileCheckBox).addComponent(drawResultCheckBox))
+				.addGroup(gl_panel_2.createSequentialGroup().addContainerGap().addComponent(this.drawNetworkCheckBox)
+						.addPreferredGap(ComponentPlacement.RELATED, 154, Short.MAX_VALUE)
+						.addComponent(this.drawResultCheckBox).addGap(131).addComponent(this.saveToFileCheckBox)
+						.addGap(23)));
+		gl_panel_2.setVerticalGroup(gl_panel_2.createParallelGroup(Alignment.LEADING).addGroup(gl_panel_2
+				.createSequentialGroup().addContainerGap()
+				.addGroup(gl_panel_2.createParallelGroup(Alignment.BASELINE).addComponent(this.drawNetworkCheckBox)
+						.addComponent(this.saveToFileCheckBox).addComponent(this.drawResultCheckBox))
 				.addContainerGap(9, Short.MAX_VALUE)));
 		panel_2.setLayout(gl_panel_2);
 
@@ -492,16 +493,24 @@ public class SimulationSettingsFrame extends JFrame
 				if (redsCheckBox.isSelected())
 				{
 					simulationData.getRunningSimulations().add(ChordProtocol.REDS);
-					redsPanel.setVisible(true);
-					SimulationSettingsFrame.this.setSize(706, 559);
-					SimulationSettingsFrame.this.pack();
+					if (simulationData.getRunningSimulations().contains(ChordProtocol.REDS_CONSENSUS) == false
+							&& simulationData.getRunningSimulations().contains(ChordProtocol.REDS_DROP_OFF) == false)
+					{
+						redsPanel.setVisible(true);
+						SimulationSettingsFrame.this.setSize(706, 559);
+						SimulationSettingsFrame.this.pack();
+					}
 				}
 				else
 				{
 					simulationData.getRunningSimulations().remove(ChordProtocol.REDS);
-					redsPanel.setVisible(false);
-					SimulationSettingsFrame.this.setSize(706, 409);
-					SimulationSettingsFrame.this.pack();
+					if (simulationData.getRunningSimulations().contains(ChordProtocol.REDS_CONSENSUS) == false
+							&& simulationData.getRunningSimulations().contains(ChordProtocol.REDS_DROP_OFF) == false)
+					{
+						redsPanel.setVisible(false);
+						SimulationSettingsFrame.this.setSize(706, 409);
+						SimulationSettingsFrame.this.pack();
+					}
 
 				}
 
@@ -534,56 +543,148 @@ public class SimulationSettingsFrame extends JFrame
 
 		);
 
+		this.dropOffCheckBox = new JCheckBox("REDS (Drop Off)");
+		this.dropOffCheckBox.setName("chckbxRedsdropOff");
+		dropOffCheckBox.addActionListener(new ActionListener()
+		{
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				if (dropOffCheckBox.isSelected())
+				{
+					simulationData.getRunningSimulations().add(ChordProtocol.REDS_DROP_OFF);
+					if (simulationData.getRunningSimulations().contains(ChordProtocol.REDS) == false
+							&& simulationData.getRunningSimulations().contains(ChordProtocol.REDS_CONSENSUS) == false)
+					{
+						redsPanel.setVisible(true);
+						SimulationSettingsFrame.this.setSize(706, 559);
+						SimulationSettingsFrame.this.pack();
+					}
+				}
+				else
+				{
+					simulationData.getRunningSimulations().remove(ChordProtocol.REDS_DROP_OFF);
+					if (simulationData.getRunningSimulations().contains(ChordProtocol.REDS) == false
+							&& simulationData.getRunningSimulations().contains(ChordProtocol.REDS_CONSENSUS) == false)
+					{
+						redsPanel.setVisible(false);
+						SimulationSettingsFrame.this.setSize(706, 409);
+						SimulationSettingsFrame.this.pack();
+					}
+
+				}
+
+			}
+		});
+
+		this.consensusCheckBox = new JCheckBox("REDS (Consensus)");
+		this.consensusCheckBox.setName("consensusCheckBox");
+		consensusCheckBox.addActionListener(new ActionListener()
+		{
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				if (consensusCheckBox.isSelected())
+				{
+					simulationData.getRunningSimulations().add(ChordProtocol.REDS_CONSENSUS);
+					alphaTextField.setVisible(true);
+					lblAlpha.setVisible(true);
+					if (simulationData.getRunningSimulations().contains(ChordProtocol.REDS) == false
+							&& simulationData.getRunningSimulations().contains(ChordProtocol.REDS_DROP_OFF) == false)
+					{
+						redsPanel.setVisible(true);
+						SimulationSettingsFrame.this.setSize(706, 559);
+						SimulationSettingsFrame.this.pack();
+					}
+				}
+				else
+				{
+					alphaTextField.setVisible(false);
+					lblAlpha.setVisible(false);
+
+					simulationData.getRunningSimulations().remove(ChordProtocol.REDS_CONSENSUS);
+					if (simulationData.getRunningSimulations().contains(ChordProtocol.REDS) == false
+							&& simulationData.getRunningSimulations().contains(ChordProtocol.REDS_DROP_OFF) == false)
+					{
+						redsPanel.setVisible(false);
+						SimulationSettingsFrame.this.setSize(706, 409);
+						SimulationSettingsFrame.this.pack();
+					}
+
+				}
+
+			}
+		});
+
 		GroupLayout gl_panel_1 = new GroupLayout(panel_1);
-		gl_panel_1.setHorizontalGroup(gl_panel_1.createParallelGroup(Alignment.LEADING).addGroup(gl_panel_1
-				.createSequentialGroup().addGap(15)
-				.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING).addGroup(gl_panel_1.createSequentialGroup()
-						.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING).addComponent(lblNumberOfRepeating)
-								.addComponent(lblNodes).addComponent(lblNumberOfLookups))
-						.addGap(32)
-						.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
-								.addComponent(lookupsField, GroupLayout.DEFAULT_SIZE, 134, Short.MAX_VALUE)
-								.addComponent(repeatingTestField, GroupLayout.DEFAULT_SIZE, 134, Short.MAX_VALUE)
-								.addComponent(nodesField, GroupLayout.DEFAULT_SIZE, 134, Short.MAX_VALUE))
-						.addGap(30))
-						.addGroup(gl_panel_1.createSequentialGroup().addComponent(lblProtocols).addGap(41)
-								.addComponent(chordCheckBox).addGap(40).addComponent(haloCheckBox)
-								.addPreferredGap(ComponentPlacement.RELATED)))
-				.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING).addComponent(lblMaximumFailureRate)
-						.addComponent(lblHaloRedundancy).addComponent(lblMaximumFailureRate_1)
-						.addComponent(redsCheckBox))
-				.addGap(75)
-				.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
-						.addComponent(maxFailureRateFormattedField, GroupLayout.DEFAULT_SIZE, 116, Short.MAX_VALUE)
-						.addComponent(minFailureRateFormattedField, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 116,
-								Short.MAX_VALUE)
-						.addComponent(haloRedundancyField, GroupLayout.DEFAULT_SIZE, 116, Short.MAX_VALUE)
-						.addComponent(chckbxChurn))
-				.addContainerGap()));
+		gl_panel_1
+				.setHorizontalGroup(gl_panel_1.createParallelGroup(
+						Alignment.LEADING)
+						.addGroup(gl_panel_1.createSequentialGroup().addGap(15).addGroup(gl_panel_1
+								.createParallelGroup(Alignment.LEADING)
+								.addGroup(gl_panel_1.createSequentialGroup()
+										.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+												.addComponent(lblNumberOfRepeating).addComponent(lblNodes).addComponent(
+														this.lblNumberOfLookups))
+										.addGap(32)
+										.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+												.addComponent(this.lookupsField, GroupLayout.DEFAULT_SIZE, 163,
+														Short.MAX_VALUE)
+												.addComponent(this.repeatingTestField, GroupLayout.DEFAULT_SIZE, 163,
+														Short.MAX_VALUE)
+												.addComponent(this.nodesField, GroupLayout.DEFAULT_SIZE, 163,
+														Short.MAX_VALUE))
+										.addGap(30))
+								.addGroup(gl_panel_1.createSequentialGroup().addComponent(lblProtocols).addGap(41)
+										.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+												.addComponent(this.chordCheckBox).addComponent(this.redsCheckBox))
+										.addGap(40)
+										.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+												.addComponent(this.dropOffCheckBox).addComponent(this.haloCheckBox))
+										.addGap(40)))
+								.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+										.addComponent(lblMaximumFailureRate).addComponent(lblMaximumFailureRate_1)
+										.addGroup(gl_panel_1.createSequentialGroup()
+												.addPreferredGap(ComponentPlacement.RELATED)
+												.addGroup(gl_panel_1.createParallelGroup(Alignment.TRAILING)
+														.addComponent(this.consensusCheckBox)
+														.addComponent(lblHaloRedundancy))))
+								.addGap(75)
+								.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+										.addComponent(this.maxFailureRateFormattedField, GroupLayout.DEFAULT_SIZE, 145,
+												Short.MAX_VALUE)
+										.addComponent(this.minFailureRateFormattedField, Alignment.TRAILING,
+												GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
+										.addComponent(this.haloRedundancyField, GroupLayout.DEFAULT_SIZE, 145,
+												Short.MAX_VALUE)
+										.addComponent(this.chckbxChurn))
+								.addContainerGap()));
 		gl_panel_1.setVerticalGroup(gl_panel_1.createParallelGroup(Alignment.LEADING).addGroup(gl_panel_1
 				.createSequentialGroup().addContainerGap()
 				.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
 						.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE).addComponent(lblMaximumFailureRate)
-								.addComponent(lblNodes).addComponent(nodesField, GroupLayout.PREFERRED_SIZE,
+								.addComponent(lblNodes).addComponent(this.nodesField, GroupLayout.PREFERRED_SIZE,
 										GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-						.addComponent(minFailureRateFormattedField, GroupLayout.PREFERRED_SIZE,
+						.addComponent(this.minFailureRateFormattedField, GroupLayout.PREFERRED_SIZE,
 								GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addGap(9)
 				.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE).addComponent(lblNumberOfRepeating)
-						.addComponent(repeatingTestField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+						.addComponent(this.repeatingTestField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
 								GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblMaximumFailureRate_1).addComponent(maxFailureRateFormattedField,
+						.addComponent(lblMaximumFailureRate_1).addComponent(this.maxFailureRateFormattedField,
 								GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addPreferredGap(ComponentPlacement.UNRELATED)
-				.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE).addComponent(lblNumberOfLookups)
-						.addComponent(lookupsField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+				.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE).addComponent(this.lblNumberOfLookups)
+						.addComponent(this.lookupsField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
 								GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblHaloRedundancy).addComponent(haloRedundancyField, GroupLayout.PREFERRED_SIZE,
-								GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addComponent(lblHaloRedundancy).addComponent(this.haloRedundancyField,
+								GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addGap(12)
 				.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE).addComponent(lblProtocols)
-						.addComponent(chordCheckBox).addComponent(haloCheckBox).addComponent(redsCheckBox)
-						.addComponent(chckbxChurn))
+						.addComponent(this.chordCheckBox).addComponent(this.haloCheckBox)
+						.addComponent(this.chckbxChurn))
+				.addGap(16).addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE).addComponent(this.redsCheckBox)
+						.addComponent(this.dropOffCheckBox).addComponent(this.consensusCheckBox))
 				.addContainerGap()));
 		panel_1.setLayout(gl_panel_1);
 
@@ -617,13 +718,14 @@ public class SimulationSettingsFrame extends JFrame
 								.addComponent(keyLengthField, GroupLayout.PREFERRED_SIZE, 103,
 										GroupLayout.PREFERRED_SIZE)
 								.addGap(19)));
-		gl_panel.setVerticalGroup(gl_panel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_panel.createSequentialGroup().addGap(5)
-						.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE).addComponent(lblHashFunction)
-								.addComponent(keyLengthField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-										GroupLayout.PREFERRED_SIZE)
+		gl_panel.setVerticalGroup(gl_panel.createParallelGroup(Alignment.LEADING).addGroup(gl_panel
+				.createSequentialGroup().addGap(5)
+				.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE).addComponent(lblHashFunction)
+						.addComponent(keyLengthField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+								GroupLayout.PREFERRED_SIZE)
 						.addComponent(hashFunctionComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-								GroupLayout.PREFERRED_SIZE).addComponent(lblKeyLength))
+								GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblKeyLength))
 				.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
 		panel.setLayout(gl_panel);
 		contentPane.setLayout(gl_contentPane);
@@ -649,6 +751,7 @@ public class SimulationSettingsFrame extends JFrame
 		simulationData.setHaloRedundancy((int) haloRedundancyField.getValue());
 		simulationData.setNumberOfLookups((int) lookupsField.getValue());
 		simulationData.setBucketSize((int) bucketSizeField.getValue());
+		simulationData.setAlpha((double) alphaTextField.getValue());
 
 		if (chordCheckBox.isSelected())
 			simulationData.getRunningSimulations().add(ChordProtocol.Chord);
@@ -665,10 +768,19 @@ public class SimulationSettingsFrame extends JFrame
 		else
 			simulationData.getRunningSimulations().remove(ChordProtocol.REDS);
 
+		if (dropOffCheckBox.isSelected())
+			simulationData.getRunningSimulations().add(ChordProtocol.REDS_DROP_OFF);
+		else
+			simulationData.getRunningSimulations().remove(ChordProtocol.REDS_DROP_OFF);
+
+		if (consensusCheckBox.isSelected())
+			simulationData.getRunningSimulations().add(ChordProtocol.REDS_CONSENSUS);
+		else
+			simulationData.getRunningSimulations().remove(ChordProtocol.REDS_CONSENSUS);
+
 		simulationData.setRedsMinObservations((int) minObservationsField.getValue());
 		simulationData.setRedsReputationTreeDepth((int) reputationTreeDepthField.getValue());
 
-		simulationData.setScoringAlgorithm((SharedReputationAlgorithm) redsScoringComboBox.getSelectedItem());
 		simulationData.setHashFunction((String) hashFunctionComboBox.getSelectedItem());
 	}
 

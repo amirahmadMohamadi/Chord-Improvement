@@ -29,7 +29,10 @@ public class MaliciousHaloNode extends HaloChordNode
 
 		ChordNode closestMaliciousNode = closestMaliciousNode(key);
 		if (closestMaliciousNode != null)
-			return closestMaliciousNode;
+			{
+				incrementHopCount(1);
+				return closestMaliciousNode;
+			}
 		return this;
 	}
 

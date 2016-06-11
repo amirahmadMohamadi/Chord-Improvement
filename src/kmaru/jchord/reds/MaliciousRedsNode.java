@@ -29,7 +29,7 @@ public class MaliciousRedsNode extends RedsChordNode
 		{
 			return this;
 		}
-
+		incrementHopCount(1);
 		return closestMaliciousNode(key);
 	}
 

@@ -158,7 +158,7 @@ public class ReputationTree
 		return root;
 	}
 
-	class FingerNode implements Comparable<FingerNode>
+	public class FingerNode implements Comparable<FingerNode>
 	{
 		FingerNode					parent;
 		ChordKey					key;
