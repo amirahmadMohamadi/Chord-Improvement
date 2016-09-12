@@ -22,6 +22,7 @@ public class SimulationData
 	private int							redsReputationTreeDepth;
 	private boolean						isChurnEnabled;
 	private double						alpha;
+	private double						maliciousBehaviorRate;
 
 	private Properties					customParameters;
 
@@ -60,6 +61,7 @@ public class SimulationData
 		this.minFailureRate = 0;
 		this.customParameters = new Properties();
 		alpha = 0.1;
+		maliciousBehaviorRate = 1.0;
 	}
 
 	public SimulationData(SimulationData simulationData)
@@ -93,6 +95,7 @@ public class SimulationData
 
 		this.alpha = 0.1;
 		this.minFailureRate = 0;
+		maliciousBehaviorRate = 1.0;
 		this.customParameters = new Properties();
 	}
 
@@ -269,5 +272,15 @@ public class SimulationData
 	public void setAlpha(double alpha)
 	{
 		this.alpha = alpha;
+	}
+
+	public double getMaliciousBehaviorRate()
+	{
+		return maliciousBehaviorRate;
+	}
+
+	public void setMaliciousBehaviorRate(double maliciousBehaviorRate)
+	{
+		this.maliciousBehaviorRate = maliciousBehaviorRate;
 	}
 }

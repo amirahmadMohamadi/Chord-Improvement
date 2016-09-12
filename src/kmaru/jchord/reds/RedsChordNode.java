@@ -294,6 +294,15 @@ public class RedsChordNode extends HaloChordNode
 
 		scoringBin.add(scoreMap.get(peer.getNodeKey()).get(0).getScore(key));
 
+		List<Integer> sizes;
+		if (getChord().getSimulationData().getCustomProperties().get("Dynamic Size") == null)
+			sizes = new ArrayList<>();
+		else
+			sizes = (List<Integer>) getChord().getSimulationData().getCustomProperties().get("Dynamic Size");
+
+		sizes.add(scoringBin.size() * 4 + 8 * 2);
+		getChord().getSimulationData().getCustomProperties().put("Dynamic Size", sizes);
+
 		DescriptiveStatistics stat = new DescriptiveStatistics();
 		for (Double score : scoringBin)
 			stat.addValue(score);
@@ -364,6 +373,15 @@ public class RedsChordNode extends HaloChordNode
 
 			consensusMap.get(this).add(score);
 		}
+
+		List<Integer> sizes;
+		if (getChord().getSimulationData().getCustomProperties().get("Dynamic Size") == null)
+			sizes = new ArrayList<>();
+		else
+			sizes = (List<Integer>) getChord().getSimulationData().getCustomProperties().get("Dynamic Size");
+
+		sizes.add(32 + graph.vertexSet().size() * 24 + graph.edgeSet().size() * 8);
+		getChord().getSimulationData().getCustomProperties().put("Dynamic Size", sizes);
 
 		getChord().getSimulationData().getCustomProperties().put("Consensus Data", consensusMap);
 		return score;
@@ -447,6 +465,30 @@ public class RedsChordNode extends HaloChordNode
 
 		this.sharedKnucklesMap.clear();
 		this.scoreMap.clear();
+	}
+
+	public int getStaticSize()
+	{
+		int scoreMapSize = 0;
+
+		for (Entry<ChordKey, Map<Integer, ReputationTree>> entry : scoreMap.entrySet())
+		{
+			for (Entry<Integer, ReputationTree> entry2 : entry.getValue().entrySet())
+			{
+				scoreMapSize += 4 + entry2.getValue().getSize();
+			}
+			scoreMapSize += 20;
+		}
+
+		int sharedKnuckleSize = sharedKnucklesMap.size() * 28;
+
+		int coefficientSize = 0;
+		for (Entry<ChordNode, ReputationTree> entry : coefficients.entrySet())
+		{
+			coefficientSize += 24 + entry.getValue().getSize();
+		}
+
+		return scoreMapSize + sharedKnuckleSize + coefficientSize;
 	}
 
 }

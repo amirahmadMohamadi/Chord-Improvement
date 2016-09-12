@@ -13,6 +13,7 @@ public class Chord
 {
 
 	private SimulationData						simulationData;
+	private double								maliciousBehaviorProbability = 1;
 	protected double							maliciousNodeProbability	= 0;
 	protected List<ChordNode>					nodeList;
 	protected SortedMap<ChordKey, ChordNode>	sortedNodeMap;
@@ -142,5 +143,15 @@ public class Chord
 	public int getNumberOfNodes()
 	{
 		return nodeList.size();
+	}
+
+	public double getMaliciousBehaviorProbability()
+	{
+		return maliciousBehaviorProbability;
+	}
+
+	public void setMaliciousBehaviorProbability(double maliciousBehaviorProbability)
+	{
+		this.maliciousBehaviorProbability = maliciousBehaviorProbability;
 	}
 }

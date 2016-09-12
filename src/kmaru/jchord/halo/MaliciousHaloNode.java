@@ -1,5 +1,6 @@
 package kmaru.jchord.halo;
 
+import java.util.Random;
 import java.util.Map.Entry;
 
 import kmaru.jchord.ChordKey;
@@ -8,9 +9,14 @@ import kmaru.jchord.ChordNode;
 public class MaliciousHaloNode extends HaloChordNode
 {
 
+	private double	a;
+	private Random	random;
+
 	public MaliciousHaloNode(String nodeId, HaloChord haloChord)
 	{
 		super(nodeId, haloChord);
+		this.a = haloChord.getMaliciousBehaviorProbability();
+		random = new Random();
 	}
 
 	@Override
@@ -22,6 +28,9 @@ public class MaliciousHaloNode extends HaloChordNode
 	@Override
 	public ChordNode locate(ChordKey key)
 	{
+		if (a < random.nextDouble())
+			return super.locate(key);
+
 		if (this == successorList.get(0))
 		{
 			return this;
@@ -29,10 +38,10 @@ public class MaliciousHaloNode extends HaloChordNode
 
 		ChordNode closestMaliciousNode = closestMaliciousNode(key);
 		if (closestMaliciousNode != null)
-			{
-				incrementHopCount(1);
-				return closestMaliciousNode;
-			}
+		{
+			incrementHopCount(1);
+			return closestMaliciousNode;
+		}
 		return this;
 	}
 

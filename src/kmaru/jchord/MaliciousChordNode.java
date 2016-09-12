@@ -1,21 +1,28 @@
 package kmaru.jchord;
 
 import java.util.Map.Entry;
+import java.util.Random;
 
 public class MaliciousChordNode extends ChordNode
 {
 
+	private double	a;
+	private Random	random;
 
 	public MaliciousChordNode(String nodeId, Chord chord)
 	{
 		super(nodeId, chord);
+		this.a = chord.getMaliciousBehaviorProbability();
+		this.random = new Random();
 	}
 
-	
-	
 	@Override
 	public ChordNode locate(ChordKey key)
 	{
+
+		if (a < random.nextDouble())
+			return super.locate(key);
+
 		if (this == successorList.get(0))
 		{
 			return this;
@@ -67,5 +74,4 @@ public class MaliciousChordNode extends ChordNode
 		return true;
 	}
 
-	
 }

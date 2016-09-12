@@ -11,8 +11,8 @@ import kmaru.jchord.ChordKey;
 public class ReputationTree
 {
 	private FingerNode	root;
-	int			minimumObservations;
-	int			chunkSize;
+	int					minimumObservations;
+	int					chunkSize;
 
 	ReputationTree(ChordKey rootKey, int chunkSize, int minimumObservations)
 	{
@@ -153,6 +153,23 @@ public class ReputationTree
 
 	}
 
+	public int getSize()
+	{
+		return getSize(root);
+	}
+	
+	public int getSize(FingerNode node)
+	{
+		int size = node.getSize();
+		
+		for (FingerNode child : node.children)
+		{
+			size += getSize(child);
+		}
+		
+		return size;
+	}
+	
 	public FingerNode getRoot()
 	{
 		return root;
@@ -164,8 +181,8 @@ public class ReputationTree
 		ChordKey					key;
 		private List<FingerNode>	children;
 
-		int	sentLookups;
-		int	successfulLookups;
+		int							sentLookups;
+		int							successfulLookups;
 
 		FingerNode(ChordKey key)
 		{
@@ -216,6 +233,11 @@ public class ReputationTree
 		public int compareTo(FingerNode o)
 		{
 			return key.compareTo(o.key);
+		}
+
+		public int getSize()
+		{
+			return 32 + children.size();
 		}
 	}
 }

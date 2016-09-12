@@ -115,16 +115,16 @@ public class Simulation
 	{
 		switch (chordProtocol)
 		{
-			case Chord:
-				return "chord";
-			case HALO:
-				return "halo " + simulationData.getHaloRedundancy();
-			case REDS:
-				return "reds (collaborative)";
-			case REDS_DROP_OFF:
-				return "reds (collaborative - drop off)";
-			case REDS_CONSENSUS:
-				return "reds (collaborative - consensus)";
+		case Chord:
+			return "chord";
+		case HALO:
+			return "halo " + simulationData.getHaloRedundancy();
+		case REDS:
+			return "reds (collaborative)";
+		case REDS_DROP_OFF:
+			return "reds (collaborative - drop off)";
+		case REDS_CONSENSUS:
+			return "reds (collaborative - consensus)";
 		}
 		throw new IllegalStateException();
 	}
@@ -272,6 +272,8 @@ public class Simulation
 		{
 			// estimateMaliciosNodes((RedsChord) chord);
 
+			saveDynamicStorage(chord);
+			saveStaticStorage((RedsChord) chord);
 			if (chord.getProtocol() == ChordProtocol.REDS_CONSENSUS)
 				saveConsensusInformation(chord);
 		}
@@ -300,7 +302,8 @@ public class Simulation
 		int messageCount = (int) getSimulationData().getCustomProperties().get("Message count");
 		try (PrintStream stream = new PrintStream(new FileOutputStream(MESSAGE_COUNT_FILE, true)))
 		{
-			stream.println(chord.getProtocol() + "," + probability + "," + chord.getSimulationData().getNumberOfLookups() + "," + messageCount);
+			stream.println(chord.getProtocol() + "," + probability + ","
+					+ chord.getSimulationData().getNumberOfLookups() + "," + messageCount);
 		}
 		catch (FileNotFoundException e)
 		{
@@ -317,7 +320,8 @@ public class Simulation
 		{
 			for (int hop : list)
 				if (hop != 0)
-					stream.println(chord.getProtocol() + "," + probability + "," + chord.getSimulationData().getNumberOfLookups() + "," + hop);
+					stream.println(chord.getProtocol() + "," + probability + ","
+							+ chord.getSimulationData().getNumberOfLookups() + "," + hop);
 		}
 		catch (FileNotFoundException e)
 		{
@@ -528,29 +532,29 @@ public class Simulation
 		Chord chord = null;
 		switch (protocol)
 		{
-			case Chord:
-				chord = new Chord(0);
-				break;
-			case HALO:
-				chord = new HaloChord(0, simulationData.getHaloRedundancy());
-				break;
-			case REDS:
-				chord = new RedsChord(0, simulationData.getHaloRedundancy(), simulationData.getBucketSize(),
-						simulationData.getRedsReputationTreeDepth(), simulationData.getRedsMinObservations(),
-						SharedReputationAlgorithm.Off);
-				break;
-			case REDS_DROP_OFF:
-				chord = new RedsChord(0, simulationData.getHaloRedundancy(), simulationData.getBucketSize(),
-						simulationData.getRedsReputationTreeDepth(), simulationData.getRedsMinObservations(),
-						SharedReputationAlgorithm.DropOff);
-				break;
-			case REDS_CONSENSUS:
-				chord = new RedsChord(0, simulationData.getHaloRedundancy(), simulationData.getBucketSize(),
-						simulationData.getRedsReputationTreeDepth(), simulationData.getRedsMinObservations(),
-						SharedReputationAlgorithm.Consensus);
-				break;
-			default:
-				return null;
+		case Chord:
+			chord = new Chord(0);
+			break;
+		case HALO:
+			chord = new HaloChord(0, simulationData.getHaloRedundancy());
+			break;
+		case REDS:
+			chord = new RedsChord(0, simulationData.getHaloRedundancy(), simulationData.getBucketSize(),
+					simulationData.getRedsReputationTreeDepth(), simulationData.getRedsMinObservations(),
+					SharedReputationAlgorithm.Off);
+			break;
+		case REDS_DROP_OFF:
+			chord = new RedsChord(0, simulationData.getHaloRedundancy(), simulationData.getBucketSize(),
+					simulationData.getRedsReputationTreeDepth(), simulationData.getRedsMinObservations(),
+					SharedReputationAlgorithm.DropOff);
+			break;
+		case REDS_CONSENSUS:
+			chord = new RedsChord(0, simulationData.getHaloRedundancy(), simulationData.getBucketSize(),
+					simulationData.getRedsReputationTreeDepth(), simulationData.getRedsMinObservations(),
+					SharedReputationAlgorithm.Consensus);
+			break;
+		default:
+			return null;
 		}
 		chord.setSimulationData(getSimulationData());
 		return chord;
@@ -697,6 +701,44 @@ public class Simulation
 		});
 	}
 
+	protected void saveDynamicStorage(Chord chord)
+	{
+		@SuppressWarnings("unchecked")
+		List<Integer> sizes = (List<Integer>) chord.getSimulationData().getCustomProperties().get("Dynamic Size");
+
+		try (PrintStream stream = new PrintStream("dynamic_storage" + chord.getProtocol() + ".csv"))
+		{
+			for (Integer integer : sizes)
+			{
+				stream.println(integer);
+			}
+			
+			chord.getSimulationData().getCustomProperties().remove("Dynamic Size");
+		}
+		catch (FileNotFoundException e)
+		{
+			e.printStackTrace();
+		}
+
+	}
+
+	protected void saveStaticStorage(RedsChord chord)
+	{
+		
+		try (PrintStream stream = new PrintStream("static_storage" + chord.getProtocol() + ".csv"))
+		{
+			for (ChordNode node : chord.getGoodNodeList())
+			{
+				stream.println(((RedsChordNode) node).getStaticSize());
+			}
+		}
+		catch (FileNotFoundException e)
+		{
+			e.printStackTrace();
+		}
+		
+	}
+	
 	public void estimateMaliciosNodes(RedsChord reds)
 	{
 		// List<ChordKey> maliciousNodes =
@@ -729,7 +771,8 @@ public class Simulation
 		System.out.println("Detected = " + detected);
 	}
 
-	// private List<ChordKey> estimateMaliciousNodesUsingRawScores(RedsChord reds)
+	// private List<ChordKey> estimateMaliciousNodesUsingRawScores(RedsChord
+	// reds)
 	// {
 	// List<ChordKey> maliciousNodes = new ArrayList<>();
 	//
@@ -740,7 +783,8 @@ public class Simulation
 	// // score.
 	// if (entry.getValue().getMin() == 0 && entry.getValue().getMax() == 0)
 	// continue;
-	// if (entry.getValue().getMean() - entry.getValue().getStandardDeviation() < -0.5)
+	// if (entry.getValue().getMean() - entry.getValue().getStandardDeviation()
+	// < -0.5)
 	// maliciousNodes.add(entry.getKey());
 	// }
 	//
